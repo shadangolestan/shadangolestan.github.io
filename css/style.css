@@ -216,7 +216,7 @@ figure {
             color: #2c98f0; }
 
 .container-wrap {
-  max-width: 1170px;
+  max-width: 1570px;
   margin: 0 auto; }
 
 #colorlib-main {
@@ -350,7 +350,7 @@ body.offcanvas {
     -ms-transform: translateX(0);
     -o-transform: translateX(0);
     transform: translateX(0);
-    width: 500px;
+    width: 300px;
     background: #f2f3f7;
     z-index: 999;
     position: fixed; }
