@@ -9,6 +9,8 @@
   font-style: normal;
 }
 
+
+
 [class^="icon-"], [class*=" icon-"] {
   /* use !important to prevent issues with browser extensions that change fonts */
   font-family: 'icomoon' !important;
@@ -22,6 +24,9 @@
   /* Better Font Rendering =========== */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+.icon-google2:before{
+  content: "\ea88";
 }
 
 .icon-times:before {
