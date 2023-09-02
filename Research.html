@@ -34,10 +34,10 @@
 		<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 		  <ul class="nav navbar-nav">
         <li><a href="index.html">Home</a></li>
-        <li><a href="Research.html">Research</a></li>
+        <li><a style="color:red" href="Research.html">Research</a></li>
         <li><a href="Publications.html">Publications</a></li> 
         <li><a href="index.html#news">News</a></li> 
-        <li><a href="Files/My__CV.pdf">CV</a></li> 
+        <li><a target="_blank" href="Files/My__CV.pdf">CV</a></li> 
         <li><a href="pics.html">Pictures</a></li> 
 		  </ul>
 		</div>
@@ -56,7 +56,44 @@
                 <div style="font-family: 'Oswald', sans-serif; font-size: 32px;"><b>Research</b></div><br>
                 
                 <div style="margin-top:3%; text-align:justify;">                
-					<p>Coming soon...</p>
+                
+                  <strong>Sequential Decision-Making Under Uncertainty:</strong><br/>
+
+                  <ul>
+                    <li class="paper"> <strong>Grey-box Bayesian Optimization</strong> <br>
+                    <p>
+                      We propose novel grey-box Bayesian optimization algorithms, which focuses on learning domain-specific knowledge inherent to the function being optimized. 
+                      This leads to designing acquisition functions that incorporate the knowledge into the decision-making process for choosing the next candidate point.
+                      In the example provided below, step 1 calculates a credit for each parameter of the candidate point (brighter colors mean more credit).
+                      We construct an information profiles that is used for calculating the expected information gain of each parameter in step 2.
+                      In step 2, we use the previous version of the expected information gain of the best answer that we have found so far, x_star.
+                      The expected informatio gain then tells us the next query point.
+                    </p>
+                    <p>
+                      <img class="img-responsive"  src="Research pictures/grey_box.png" alt=""  width="700" height="700"><br>
+                    </p>
+                  </ul>
+
+                  <ul>
+                    <li class="paper"> <strong>Simulation-driven Sensor Placement Optimization Framework</strong> <br>
+                    <p>
+                      We propose a framework that at its heart, lies an optimization algorithm.
+                      The algorithm iteratively observes the previous outcome of a sensor placement and 
+                      accordingly proposes the next one.
+                      The candidate sensor placement goes to a simulation software that produces a synthetic, but realistic
+                      datasets according to the occupants daily activity plans, indoor space layout and sensors. 
+                      The dataset consists of occupants activities and corresponding sensor readings.
+                      This dataset is then used by an activity classifier to train and test an activity recognition model.
+                      The performance of the activity recognition model is reported as the quality of the candidate sensor placement.
+
+                    </p>
+                    <p>
+                      <img class="img-responsive"  src="Research pictures/simulation.png" alt=""  width="700" height="700"><br>
+                    </p>
+                  </ul>
+
+                  
+                
 					
                 </div>
             </div> 
@@ -74,27 +111,12 @@
             
             <!-- Links on the Sidebar -->
             <div class="col-md-4" style="margin-top:2%">
-              <dd><a href="https://scholar.google.ca/citations?user=JV9e-TkAAAAJ&hl=en&authuser=2">Google Scholar</a></dd> 
-			  <dd><a href="https://github.com/shadangolestan">GitHub</a></dd> 
-              <dd><a href="https://twitter.com/shgolestan">Twitter</a></dd>
-              <dd><a href="https://www.linkedin.com/in/shgolestan/">LinkedIn</a></dd>
+              <dd><a target="_blank" href="https://scholar.google.ca/citations?user=JV9e-TkAAAAJ&hl=en&authuser=2">Google Scholar</a></dd> 
+			  <dd><a target="_blank" href="https://github.com/shadangolestan">GitHub</a></dd> 
+              <dd><a target="_blank" href="https://twitter.com/shgolestan">Twitter</a></dd>
+              <dd><a target="_blank" href="https://www.linkedin.com/in/shgolestan/">LinkedIn</a></dd>
             </div>
             
-            
-            <!-- Publications -->
-            <div class="col-md-8" style="height: 100vh;">    
-                <h2 id="publications">Publications</h2>
-                
-                <strong>Peer-reviewed</strong><br/>
-                <ul>
-                <li class="paper" words="add, your, keywords, here"><a href="#">Full title</a> Names of the authors</li>
-                </ul>
-            
-                <strong>Technical Reports</strong><br/>
-                <ul>
-                <li class="paper" words="add, your, keywords, here"><a href="#">Full title</a>. Details of the report</li>
-                </ul>
-            </div>
 
             
         </div>
@@ -103,8 +125,6 @@
     </div>
     <!-- /.container -->
     
-    <!-- Other people may like it too! -->
-    <a style="color:#b5bec9;font-size:0.8em; float:right;" href="https://github.com/mavroudisv/plain-academic">Plain Academic</a> 
     
 </body>
 
