@@ -69,9 +69,9 @@
                       </dd> <br>
                     <p>
                       Deep reinforcement learning (DRL) has been successful in robotics but lacks explainability. 
-                      This paper proposes using Graph Networks and Layer-wise Relevance Propagation to analyze the learned representations of a robot's observations. 
+                      This research proposes using Graph Networks and Layer-wise Relevance Propagation (LRP) to analyze the learned representations of a robot's observations. 
                       By representing observations as entity-relationship graphs, 
-                      the authors can interpret the robot's decision-making process, 
+                      we can interpret the robot's decision-making process, 
                       compare different policies, 
                       and understand how the robot recovers from errors. 
                       This approach contributes to making DRL in robotics more transparent and understandable.
@@ -128,27 +128,25 @@
                     </p>
                   </ul>
 
+                  <strong>Simulation Methodologies:</strong><br/>
 
                   <ul>
                     <li class="paper"> <strong>Sim SIS: A Simulation Framework for Smart Indoor Spaces</strong> 
                       <dd>
                         <a target="_blank" href="https://www.mdpi.com/1424-8220/20/24/7137">Paper</a>
                         |
-                        <a target="_blank" href="https://github.com/shadangolestan/SIM_SIS-Simulator?tab=readme-ov-file">Code</a>
+                        <a target="_blank" href="https://github.com/shadangolestan/SIM_SIS-Simulator">Code</a>
                       </dd> <br>
                     <p>
-                      We propose a framework that at its heart, lies an optimization algorithm.
-                      The algorithm iteratively observes the previous outcome of a sensor placement and 
-                      accordingly proposes the next one.
-                      The candidate sensor placement goes to a simulation software that produces a synthetic, but realistic
-                      datasets according to the occupants daily activity plans, indoor space layout and sensors. 
-                      The dataset consists of occupants activities and corresponding sensor readings.
-                      This dataset is then used by an activity classifier to train and test an activity recognition model.
-                      The performance of the activity recognition model is reported as the quality of the candidate sensor placement.
+                      Optimizing sensor placement in smart homes and buildings is challenging due to the time and cost of real-world testing. 
+                      This researcg presents a simulation tool called SIMsis that models indoor spaces, occupant activities, and sensor behaviors. 
+                      SIMsis generates realistic sensor data over time, 
+                      which can be used to evaluate different sensor configurations without physical experimentation. 
+                      We tested SIMsis in a smart home setting (Real-World Measurements) and found it effectively simulates real-world conditions, making it a valuable tool for developing and deploying sensor-based applications.
 
                     </p>
                     <p>
-                      <img class="img-responsive"  src="Research pictures/simulation.png" alt=""  width="500" height="500"><br>
+                      <img class="img-responsive"  src="Research pictures/simsis.png" alt=""  width="500" height="500"><br>
                     </p>
                   </ul>
 
