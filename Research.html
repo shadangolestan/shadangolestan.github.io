@@ -35,6 +35,7 @@
 		  <ul class="nav navbar-nav">
         <li><a href="index.html">Home</a></li>
         <li><a style="color:red" href="Research.html">Research</a></li>
+        <li><a href="Experience.html">Experience</a></li> 
         <li><a href="Publications.html">Publications</a></li> 
         <li><a href="index.html#news">News</a></li> 
         <li><a target="_blank" href="Files/My__CV.pdf">CV</a></li> 
@@ -61,6 +62,32 @@
                   <strong>Reinforcement Learning:</strong><br/>
 
                   <ul>
+                    <li class="paper"> <strong>Enhancing Hardware Fault Tolerance in Autonomous Machines Using Reinforcement Learning Policy Gradient Algorithms</strong> 
+                      <dd>
+                        <a target="_blank" href="https://arxiv.org/pdf/2407.15283">Paper</a>
+                        |
+                        <a target="_blank" href="">Code</a>
+                      </dd> <br>
+                    <p>
+                      The industry is shifting towards autonomous systems capable of detecting and adapting to machine hardware faults. 
+                      Traditional fault tolerance involves duplicating components and reconfiguring processes, 
+                      but reinforcement learning (RL) offers a new approach. 
+                      This paper explores the potential of two RL algorithms, PPO and SAC, 
+                      for enhancing hardware fault tolerance in machines. 
+                      Tested in OpenAI Gym environments (Ant-v2, FetchReach-v1) with six simulated faults, 
+                      results show RL enables rapid adaptation. 
+                      PPO adapts best by retaining knowledge, while SAC performs better when discarding it, 
+                      highlighting RL's potential for developing robust, adaptive machines.
+                    </p>
+                    <p>
+                      <div style="display: flex; justify-content: center;">
+                        <img class="img-responsive" src="Research pictures/FaultAdaptation.png" alt="" width="500" height="500">
+                    </div>
+                    </p>
+                  </ul>
+
+
+                  <ul>
                     <li class="paper"> <strong>Explainability of Deep Reinforcement Learning Algorithms in Robotics</strong> 
                       <dd>
                         <a target="_blank" href="https://www.sciencedirect.com/science/article/pii/S0952197624012892">Paper</a>
@@ -77,7 +104,9 @@
                       This approach contributes to making DRL in robotics more transparent and understandable.
                     </p>
                     <p>
+                      <div style="display: flex; justify-content: center;">
                       <img class="img-responsive"  src="Research pictures/explainability.jpeg" alt=""  width="500" height="500"><br>
+                    </div>
                     </p>
                   </ul>
 
@@ -103,7 +132,9 @@
                       The expected informatio gain then tells us the next query point.
                     </p>
                     <p>
+                      <div style="display: flex; justify-content: center;">
                       <img class="img-responsive"  src="Research pictures/grey_box.png" alt=""  width="500" height="500"><br>
+                    </div>
                     </p>
                   </ul>
 
@@ -126,7 +157,9 @@
 
                     </p>
                     <p>
+                      <div style="display: flex; justify-content: center;">
                       <img class="img-responsive"  src="Research pictures/simulation.png" alt=""  width="500" height="500"><br>
+                    </div>
                     </p>
                   </ul>
 
@@ -148,7 +181,9 @@
 
                     </p>
                     <p>
+                      <div style="display: flex; justify-content: center;">
                       <img class="img-responsive"  src="Research pictures/simsis.png" alt=""  width="700" height="700"><br>
+                    </div>
                     </p>
                   </ul>
 
@@ -158,28 +193,34 @@
                 </div>
             </div> 
 
-           <!-- Contact Info on the Sidebar -->
-           <div class="col-md-4">
-            <div style="font-family: 'Oswald', sans-serif; font-size: 32px;"><b>Shadan Golestan</b></div><br>
-            <p><b>golestan@ualberta.ca</b><br>
-    <p>Postdoctoral Fellow<br>  
-            Department Computing Science<br>
-            University of Alberta<br>
-            </p>
-        </div>
-            
-            
-            <!-- Links on the Sidebar -->
-            <div class="col-md-4" style="margin-top:2%">
-              <dd><a target="_blank" href="https://scholar.google.ca/citations?user=JV9e-TkAAAAJ&hl=en&authuser=2">Google Scholar</a></dd> 
-			  <dd><a target="_blank" href="https://github.com/shadangolestan">GitHub</a></dd> 
+<!-- Contact Info on the Sidebar -->
+<div class="col-md-4">
+  <div style="font-family: 'Oswald', sans-serif; font-size: 32px;"><b>Shadan Golestan</b></div><br>
+  <div style="display: flex; align-items: center; margin-bottom: 10px;">
+    <img src="logos/University of Alberta.png" alt="University Logo" style="max-width: 100px; height: auto; margin-right: 5px;">
+    <img src="logos/amii_logo_new.png" alt="Amii Logo" style="max-width: 100px; height: auto;">
+</div>
+  <p><b>golestan@ualberta.ca</b><br>
+      <!-- Logos beside each other using flexbox -->
+      
+      Postdoctoral Fellow<br>
+      Department of Computing Science<br>
+      University of Alberta<br>
+      Alberta Machine Intelligence Institute (Amii)<br>
+  </p>
+</div>
+
+      
+
+      <!-- Links on the Sidebar -->
+      <div class="col-md-4">
+          <div style="margin-top: 2%">
+              <dd><a target="_blank" href="https://scholar.google.ca/citations?user=JV9e-TkAAAAJ&hl=en&authuser=2">Google Scholar</a></dd>
+              <dd><a target="_blank" href="https://github.com/shadangolestan">GitHub</a></dd>
               <dd><a target="_blank" href="https://twitter.com/shgolestan">Twitter</a></dd>
               <dd><a target="_blank" href="https://www.linkedin.com/in/shgolestan/">LinkedIn</a></dd>
-            </div>
-            
-
-            
-        </div>
+          </div>
+      </div>
 
 
     </div>
