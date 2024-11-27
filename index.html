@@ -1,11 +1,6 @@
 <!DOCTYPE html>
-<!--
-    Plain-Academic by Vasilios Mavroudis
-    Released under the Simplified BSD License/FreeBSD (2-clause) License.
-    https://github.com/mavroudisv/plain-academic
--->
-
 <html lang="en">
+
 <head>
   <title>Shadan Golestan</title>
   <meta charset="utf-8">
@@ -16,186 +11,166 @@
   <link href='https://fonts.googleapis.com/css?family=Oswald:700' rel='stylesheet' type='text/css'>
 
   <style>
-	.frame {
-	  width: 310px;
-	  height: 305px;
-	  border: 1px solid #ccc;
-	  background: #eee;
-	  margin: auto;
-	  padding: 10px 10px;
-	}
-	img {
-	  width: 100%;
-	  height: 100%;
-	}
-</style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
 
+    .container {
+      margin-top: 20px;
+    }
 
+    .frame {
+      width: 310px;
+      height: 305px;
+      border: 1px solid #ccc;
+      background: #eee;
+      margin: auto;
+      padding: 10px 10px;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+    }
+
+    #news-section {
+      margin-top: 50px;
+      clear: both; /* Ensure no overlap with floated elements */
+    }
+
+    .col-md-8,
+    .col-md-4 {
+      margin-bottom: 20px; /* Add spacing between columns */
+    }
+
+    @media (max-width: 768px) {
+      .col-md-8,
+      .col-md-4 {
+        margin-bottom: 20px;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
 
-
-<!-- Navigation -->
-	<nav class="navbar navbar-inverse navbar-static-top" role="navigation">
-	  <div class="container">
-		<div class="navbar-header">
-		  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-						<span class="sr-only">Toggle navigation</span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-		</div>
-
-		<!-- Collect the nav links, forms, and other content for toggling -->
-		<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-		  <ul class="nav navbar-nav">
-				  <li><a style="color:red" href="index.html">Home</a></li>
-				  <li><a href="Research.html">Research</a></li>
-          <li><a href="Experience.html">Experience</a></li> 
-				  <li><a href="Publications.html">Publications</a></li>
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          <li><a style="color:red" href="index.html">Home</a></li>
+          <li><a href="Research.html">Research</a></li>
+          <li><a href="Experience.html">Experience</a></li>
+          <li><a href="Publications.html">Publications</a></li>
           <li><a href="Professional_Service.html">Professional Service</a></li>
           <li><a href="Teaching.html">Teaching</a></li>
-				  <li><a href="#news">News</a></li> 
-				  <li><a target="_blank" href="Files/My__CV.pdf">CV</a></li> 
-          <li><a href="Resources.html">Resources</a></li> 
-				  <li><a href="pics.html">Pictures</a></li> 
-		  </ul>
-		</div>
-	  </div>
-	</nav>
-  
+          <li><a href="#news">News</a></li>
+          <li><a target="_blank" href="Files/My__CV.pdf">CV</a></li>
+          <li><a href="Resources.html">Resources</a></li>
+          <li><a href="pics.html">Others</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
   <!-- Page Content -->
-    <div class="container">
-
-        <div class="row">
-
-            <!-- Entries Column -->
-            <div class="col-md-8" style="height: 70vh;">
-                
-                <!-- Main Image -->
-				
-
-
-
-				<div class="frame">
-                <img class="img-responsive"  src="photo2.png" alt=""  width="300" height="300"><br>
-
-				</div>
-                <div style="margin-top:3%; text-align:justify;">                
-					<p>I am Shadan Golestan, a postdoctoral fellow at the 
+  <div class="container">
+    <div class="row">
+      <!-- Entries Column -->
+      <div class="col-md-8">
+        <div class="frame">
+          <img class="img-responsive" src="photo2.png" alt="" width="300" height="300"><br>
+        </div>
+        <div style="margin-top:3%; text-align:justify;">
+          <p>
+            I am Shadan Golestan, a postdoctoral fellow at the 
             <a href="https://www.ualberta.ca/en/computing-science/index.html"> Computing Science of the University of Alberta</a>, and
             <a href="https://www.amii.ca"> Alberta Machine Intelligence Institute (Amii)</a>
-            working with <a href="https://webdocs.cs.ualberta.ca/~zaiane/"> Prof. Osmar Zaiane</a>.</p>
-					
-					<p>
-            The figure below shows the main themes of my research:
-            1: Domain Knowledge Integration via Data-driven Learning,
-            2: Learning Representations and Synthetic Dataset Generation, and
-            3: Desicion-making Agents.
-
-            I focus on designing agents via 
-            Reinforcement Learning, 
-            Bayesian Optimization, 
-            and Large Language Models, 
-            to solve sequential decision-making problems, 
-            such as system optimization and machine/robot adaptation techniques in real-world applications.  
+            working with <a href="https://webdocs.cs.ualberta.ca/~zaiane/"> Prof. Osmar Zaiane</a>.
           </p>
-
+          <p>
+            The figure below shows the main themes of my research:  
+            1: Domain Knowledge Integration via Data-driven Learning,  
+            2: Learning Representations and Synthetic Dataset Generation, and  
+            3: Decision-making Agents.
+          </p>
+          <p>
+            I focus on designing agents via  
+            Reinforcement Learning,  
+            Bayesian Optimization,  
+            and Large Language Models,  
+            to solve sequential decision-making problems,  
+            such as system optimization and machine/robot adaptation techniques in real-world applications.
+          </p>
           <p>
             Before that, I was a PhD candidate in the same department
             under the supervision of <a href="http://webdocs.cs.ualberta.ca/~pierreb/"> Prof. Pierre Boulanger</a>.
             I researched on Bayesian optimization and simulation methodologies for optimizing and evaluating 
             smart indoor spaces.
           </p>
-					
-          <p>
-            <div style="display: flex; justify-content: center;">
-            <img class="img-responsive"  src="Research pictures/research_themes.png" alt=""  width="500" height="500"><br>
+          <div style="display: flex; justify-content: center;">
+            <img class="img-responsive" src="Research pictures/research_themes.png" alt="" width="500" height="500"><br>
           </div>
-          </p>
-
-					<p></p>
-                </div>
-            </div> 
-
-          <!-- Contact Info on the Sidebar -->
-           
-<!-- Contact Info on the Sidebar -->
-<div class="col-md-4">
-  <div style="font-family: 'Oswald', sans-serif; font-size: 32px;"><b>Shadan Golestan</b></div><br>
-  <div style="display: flex; align-items: center; margin-bottom: 10px;">
-    <img src="logos/University of Alberta.png" alt="University Logo" style="max-width: 100px; height: auto; margin-right: 5px;">
-    <img src="logos/amii_logo_new.png" alt="Amii Logo" style="max-width: 100px; height: auto;">
-</div>
-  <p><b>golestan@ualberta.ca</b><br>
-      <!-- Logos beside each other using flexbox -->
-      
-      Postdoctoral Fellow<br>
-      Department of Computing Science<br>
-      University of Alberta<br>
-      Alberta Machine Intelligence Institute (Amii)<br>
-  </p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-      <!-- Links on the Sidebar -->
-      <div class="col-md-4">
-          <div style="margin-top: 2%">
-              <dd><a target="_blank" href="https://scholar.google.ca/citations?user=JV9e-TkAAAAJ&hl=en&authuser=2">Google Scholar</a></dd>
-              <dd><a target="_blank" href="https://github.com/shadangolestan">GitHub</a></dd>
-              <dd><a target="_blank" href="https://twitter.com/shgolestan">Twitter</a></dd>
-              <dd><a target="_blank" href="https://www.linkedin.com/in/shgolestan/">LinkedIn</a></dd>
-          </div>
-      </div>
-            
-            
-            <!-- Publications -->
-            <div class="col-md-8" style="height: 100vh;">    
-                <h2 id="news">News</h2>
-                
-                <strong>Aug 17, 2024</strong><br/>
-                <ul>
-                <li class="paper" words="add, your, keywords, here"> Our paper titled "Explainability of deep reinforcement learning algorithms in robotic domains by using Layer-wise Relevance Propagation" has been published on <b style="color:red">Engineering Applications of Artificial Intelligence</b></li>
-                </ul>
-
-                <strong>Dec 09, 2023</strong><br/>
-                <ul>
-                <li class="paper" words="add, your, keywords, here"> Our paper (with Omid Ardakanian and Pierre Boulanger) on a novel grey-box Bayesian optimization has been accepted at <b style="color:red">AAAI 2024</b></li>
-                </ul>
-
-                <strong>Dec 03, 2023</strong><br/>
-                <ul>
-                <li class="paper" words="add, your, keywords, here"> I will be joining the Computing Science department at the University of Alberta and Alberta Machine Intelligence Institute (Amii) as a <b style="color:red">Postdoctoral Fellow</b> working with Professor Osmar Zaiane. 
-                  I will research on Reinforcement Learning.</li>
-                </ul>
-
-                <strong>May 24, 2023</strong><br/>
-                <ul>
-                <li class="paper" words="add, your, keywords, here"> I have successfully graduated from my PhD studies! </li>
-                </ul>
-            
-            </div>
-
-            
         </div>
+      </div>
 
+      <!-- Contact Info on the Sidebar -->
+      <div class="col-md-4">
+        <div style="font-family: 'Oswald', sans-serif; font-size: 32px;"><b>Shadan Golestan</b></div><br>
+        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+          <img src="logos/University of Alberta.png" alt="University Logo" style="max-width: 100px; height: auto; margin-right: 5px;">
+          <img src="logos/amii_logo_new.png" alt="Amii Logo" style="max-width: 100px; height: auto;">
+        </div>
+        <p><b>golestan@ualberta.ca</b><br>
+          Postdoctoral Fellow<br>
+          Department of Computing Science<br>
+          University of Alberta<br>
+          Alberta Machine Intelligence Institute (Amii)<br>
+        </p>
+        <div style="margin-top: 2%">
+          <dd><a target="_blank" href="https://scholar.google.ca/citations?user=JV9e-TkAAAAJ&hl=en&authuser=2">Google Scholar</a></dd>
+          <dd><a target="_blank" href="https://github.com/shadangolestan">GitHub</a></dd>
+          <dd><a target="_blank" href="https://twitter.com/shgolestan">Twitter</a></dd>
+          <dd><a target="_blank" href="https://www.linkedin.com/in/shgolestan/">LinkedIn</a></dd>
+        </div>
+      </div>
 
+      <!-- News Section -->
+      <div class="col-md-12" id="news-section">
+        <h2 id="news">News</h2>
+        <strong>Aug 17, 2024</strong><br/>
+        <ul>
+          <li>Our paper titled "Explainability of deep reinforcement learning algorithms in robotic domains by using Layer-wise Relevance Propagation" has been published on <b style="color:red">Engineering Applications of Artificial Intelligence</b>.</li>
+        </ul>
+        <strong>Dec 09, 2023</strong><br/>
+        <ul>
+          <li>Our paper (with Omid Ardakanian and Pierre Boulanger) on a novel grey-box Bayesian optimization has been accepted at <b style="color:red">AAAI 2024</b>.</li>
+        </ul>
+        <strong>Dec 03, 2023</strong><br/>
+        <ul>
+          <li>I will be joining the Computing Science department at the University of Alberta and Alberta Machine Intelligence Institute (Amii) as a <b style="color:red">Postdoctoral Fellow</b> working with Professor Osmar Zaiane. I will research on Reinforcement Learning.</li>
+        </ul>
+        <strong>May 24, 2023</strong><br/>
+        <ul>
+          <li>I have successfully graduated from my PhD studies!</li>
+        </ul>
+      </div>
     </div>
-    <!-- /.container -->
-    
-    <!-- Other people may like it too! -->
-    <a style="color:#b5bec9;font-size:0.8em; float:right;" href="https://github.com/mavroudisv/plain-academic">Plain Academic</a> 
-    
+  </div>
+
+  <!-- Footer -->
+  <a style="color:#b5bec9;font-size:0.8em; float:right;" href="https://github.com/mavroudisv/plain-academic">Plain Academic</a>
 </body>
 
 </html>
