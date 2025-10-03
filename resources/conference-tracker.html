@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sequential Decision Making Conferences</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b0c10;
+      --fg: #e4e7eb;
+      --muted: #9aa5b1;
+      --accent: #5b9cff;
+      --accent-2: #2dd4bf;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --card: #111318;
+      --border: #20232b;
+      --ok: #10b981;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      margin: 0 0 20px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 16px 0 12px 0;
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0));
+    }
+
+    tbody td {
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    tbody tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .chip.ok { color: var(--ok); border-color: rgba(16,185,129,0.35); }
+    .chip.warn { color: var(--warn); border-color: rgba(245,158,11,0.35); }
+    .chip.danger { color: var(--danger); border-color: rgba(239,68,68,0.35); }
+    .chip.info { color: var(--accent-2); border-color: rgba(45,212,191,0.35); }
+
+    .small { font-size: 12px; color: var(--muted); }
+
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    .footer {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
+  <script defer>
+    (function() {
+      const YAML_URLS = [
+        'https://raw.githubusercontent.com/paperswithcode/ai-deadlines/gh-pages/_data/conferences.yml',
+        'https://raw.githubusercontent.com/abhshkdz/ai-deadlines/gh-pages/_data/conferences.yml',
+      ];
+      const TARGETS = [
+        { key: 'NeurIPS', aliases: ['NeurIPS', 'NIPS'] },
+        { key: 'ICLR', aliases: ['ICLR'] },
+        { key: 'ICML', aliases: ['ICML'] },
+        { key: 'IJCAI', aliases: ['IJCAI'] },
+        { key: 'AAAI', aliases: ['AAAI'] },
+        { key: 'ECAI', aliases: ['ECAI'] },
+        { key: 'AISTATS', aliases: ['AISTATS'] },
+        { key: 'AAMAS', aliases: ['AAMAS'] },
+        { key: 'RLC', aliases: ['RLC', 'Reinforcement Learning Conference'] },
+        { key: 'CoRL', aliases: ['CoRL', 'Conference on Robot Learning'] },
+        { key: 'RLDM', aliases: ['RLDM', 'Reinforcement Learning and Decision Making'] },
+        { key: 'ICAPS', aliases: ['ICAPS'] },
+        { key: 'UAI', aliases: ['UAI', 'Uncertainty in AI'] },
+        { key: 'L4DC', aliases: ['L4DC', 'Learning for Dynamics and Control'] },
+        { key: 'RSS', aliases: ['RSS', 'Robotics: Science and Systems'] },
+        { key: 'ICRA', aliases: ['ICRA'] },
+        { key: 'IROS', aliases: ['IROS'] },
+      ];
+
+      // Manual overrides for latest conference websites
+      const LATEST_LINKS = {
+        'L4DC': 'https://sites.google.com/usc.edu/l4dc2026/home',
+        'ICLR': 'https://iclr.cc/',
+        'NeurIPS': 'https://neurips.cc/',
+        'ICML': 'https://icml.cc/',
+        'CoRL': 'https://www.corl2024.org/',
+        'RSS': 'https://roboticsconference.org/',
+        'ICRA': 'https://www.icra2024.org/',
+        'IROS': 'https://iros2024.org/',
+        'AAAI': 'https://aaai.org/',
+        'IJCAI': 'https://ijcai.org/',
+        'AAMAS': 'https://cyprusconferences.org/aamas2026/call-for-papers-main-track/',
+        'UAI': 'https://www.auai.org/',
+        'ICAPS': 'https://icaps26.icaps-conference.org/dates/',
+        'AISTATS': 'https://virtual.aistats.org/Conferences/2026',
+        'RLDM': 'https://rldm.org/',
+        'RLC': 'https://rlc-conference.cc/',
+        'ECAI': 'https://www.ecai2024.eu/',
+      };
+
+      // Manual official deadline overrides for cases where the data source lags
+      // Add items as needed to avoid showing estimated text when official dates exist
+      const OFFICIAL_OVERRIDES = {
+        'ICLR': [
+          { year: 2026, deadline: '2025-09-24 23:59:59 AoE', timezone: 'AoE', link: 'https://iclr.cc/Conferences/2026/Dates' },
+        ],
+        'ICAPS': [
+          { year: 2026, deadline: '2025-12-02 23:59:59 AoE', timezone: 'AoE', link: 'https://icaps-conference.org/' },
+        ],
+      };
+
+      function safeParseJSON(value, fallback = null) {
+        try { return JSON.parse(value); } catch { return fallback; }
+      }
+
+      function parseTimezoneOffset(tz) {
+        if (!tz) return 'Z';
+        const tzTrim = String(tz).trim();
+        if (tzTrim.toLowerCase() === 'aoe') return '-12:00';
+        if (tzTrim.toUpperCase() === 'UTC') return 'Z';
+        const m = tzTrim.match(/^UTC\s*([+-])(\d{1,2})(?::?(\d{2}))?$/i);
+        if (m) {
+          const sign = m[1] === '-' ? '-' : '+';
+          const hh = m[2].padStart(2, '0');
+          const mm = (m[3] || '00').padStart(2, '0');
+          return `${sign}${hh}:${mm}`;
+        }
+        // Fallback: unknown zone, assume UTC
+        return 'Z';
+      }
+
+      // Extract inline timezone suffixes like "AoE", "UTC", or "UTC+/-HH(:MM)" from the deadline string
+      function extractInlineTimezone(deadlineStr) {
+        const raw = String(deadlineStr || '').trim();
+        // Matches: "AoE", "AOE", "UTC", "UTC+9", "UTC-12", "UTC+05:30", with optional preceding whitespace
+        const m = raw.match(/\s+(AOE|AoE|UTC(?:\s*[+-]\s*\d{1,2}(?::?\d{2})?)?)$/i);
+        if (!m) {
+          return { cleaned: raw, inlineTz: null };
+        }
+        const cleaned = raw.slice(0, raw.length - m[0].length).trim();
+        const inlineTz = m[1];
+        return { cleaned, inlineTz };
+      }
+
+      function toIsoWithTimezone(deadlineStr, tz) {
+        if (!deadlineStr) return null;
+        const { cleaned, inlineTz } = extractInlineTimezone(deadlineStr);
+        if (!cleaned) return null;
+        // Already ISO with Z or offset
+        if (/T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:?\d{2})$/.test(cleaned)) {
+          return cleaned.replace(/(\+|\-)(\d{2})(\d{2})$/, '$1$2:$3');
+        }
+        const base = cleaned.replace(' ', 'T');
+        // Prefer explicit tz param; otherwise use inline; default UTC
+        const tzCandidate = tz || inlineTz || 'UTC';
+        const tzOff = parseTimezoneOffset(tzCandidate);
+        if (/T\d{2}:\d{2}(:\d{2})?$/.test(base)) {
+          return base + (tzOff === 'Z' ? 'Z' : tzOff);
+        }
+        // Date-only
+        if (/^\d{4}-\d{2}-\d{2}$/.test(base)) {
+          return base + 'T23:59:59' + (tzOff === 'Z' ? 'Z' : tzOff);
+        }
+        return null;
+      }
+
+      function parseDeadline(deadlineStr, timezone) {
+        const iso = toIsoWithTimezone(deadlineStr, timezone);
+        if (!iso) return null;
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) {
+          // Try date-only fallback
+          const m = String(deadlineStr).match(/^(\d{4}-\d{2}-\d{2})/);
+          if (m) {
+            const dd = new Date(m[1] + 'T23:59:59Z');
+            return isNaN(dd.getTime()) ? null : dd;
+          }
+          return null;
+        }
+        return d;
+      }
+
+      function daysUntil(date) {
+        const now = new Date();
+        const ms = date.getTime() - now.getTime();
+        if (ms <= 0) return 0; // already passed or due today
+        return Math.floor(ms / (1000 * 60 * 60 * 24));
+      }
+
+      function formatDateTimeInTimezone(date, tzLabel) {
+        if (!date) return 'Unknown';
+        const off = parseTimezoneOffset(tzLabel || 'UTC');
+        // off like 'Z' or '+05:30' or '-12:00'
+        let offsetMinutes = 0;
+        if (off === 'Z') {
+          offsetMinutes = 0;
+        } else {
+          const m = off.match(/^([+-])(\d{2}):(\d{2})$/);
+          if (m) {
+            const sign = m[1] === '-' ? -1 : 1;
+            offsetMinutes = sign * (parseInt(m[2], 10) * 60 + parseInt(m[3], 10));
+          }
+        }
+        const localMs = date.getTime() + offsetMinutes * 60 * 1000;
+        const d = new Date(localMs);
+        const y = d.getUTCFullYear();
+        const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const da = String(d.getUTCDate()).padStart(2, '0');
+        const hh = String(d.getUTCHours()).padStart(2, '0');
+        const mm = String(d.getUTCMinutes()).padStart(2, '0');
+        const tzDisp = (String(tzLabel || '').trim().toUpperCase() === 'AOE') ? 'AoE' : (off === 'Z' ? 'UTC' : `UTC${off}`);
+        return `${y}-${mo}-${da} ${hh}:${mm} ${tzDisp}`;
+      }
+
+      function byMostRecentYear(a, b) {
+        const ya = Number(a.year || 0);
+        const yb = Number(b.year || 0);
+        return yb - ya;
+      }
+
+      function deriveYearFromDeadline(deadlineStr) {
+        const m = String(deadlineStr || '').match(/^(\d{4})/);
+        return m ? Number(m[1]) : null;
+      }
+
+      function estimateForYear(entries, targetYear) {
+        // Use the most recent prior year's pattern; keep month/day/time, adjust year.
+        const withYears = entries.map(e => ({
+          entry: e,
+          year: Number(e.year || deriveYearFromDeadline(e.deadline)) || null,
+        })).filter(x => x.year);
+        if (withYears.length === 0) return null;
+        withYears.sort((a, b) => b.year - a.year);
+        const recent = withYears.find(x => x.year < targetYear) || withYears[0];
+        const d = parseDeadline(recent.entry.deadline, recent.entry.timezone);
+        if (!d) return null;
+        
+        // Calculate the typical offset between conference year and deadline year
+        const recentDeadlineYear = d.getFullYear();
+        const deltaYears = recentDeadlineYear - recent.year; // typically 0 or -1
+        
+        // For estimation, apply the same offset to the target year
+        const estimatedDeadlineYear = targetYear + deltaYears;
+        const est = new Date(d);
+        est.setFullYear(estimatedDeadlineYear);
+        
+        // If the estimated deadline is in the past, try the next year
+        if (est < new Date()) {
+          est.setFullYear(estimatedDeadlineYear + 1);
+        }
+        
+        return {
+          estimated: true,
+          title: recent.entry.title,
+          year: targetYear,
+          deadlineDate: est,
+          timezone: recent.entry.timezone || 'UTC',
+          source: 'Estimated from ' + recent.year + ' pattern',
+        };
+      }
+
+      function pickUpcomingEntry(groupEntries) {
+        const currentYear = new Date().getFullYear();
+        const nextYear = currentYear + 1;
+        const prevYear = currentYear - 1;
+
+        function officialForYear(y) {
+          const entries = groupEntries.filter(e => Number(e.year) === y);
+          if (entries.length === 0) return null;
+          // Pick the earliest upcoming deadline in that year
+          const upcoming = entries
+            .map(e => ({ e, d: parseDeadline(e.deadline, e.timezone) }))
+            .filter(x => x.d && x.d.getTime() > Date.now())
+            .sort((a, b) => a.d.getTime() - b.d.getTime());
+          const chosen = upcoming[0] || null;
+          if (!chosen) return null;
+          return {
+            estimated: false,
+            title: chosen.e.title,
+            year: y,
+            deadlineDate: chosen.d,
+            timezone: chosen.e.timezone || 'UTC',
+            source: 'Official',
+            link: chosen.e.link || null,
+          };
+        }
+
+        // Priority: current year, then next year
+        const currentOfficial = officialForYear(currentYear);
+        if (currentOfficial) return currentOfficial;
+        const nextOfficial = officialForYear(nextYear);
+        if (nextOfficial) return nextOfficial;
+
+        // If neither exists as upcoming, estimate using the most recent prior pattern, preferring prevYear
+        const est = estimateForYear(groupEntries, currentYear) || estimateForYear(groupEntries, nextYear) || estimateForYear(groupEntries, prevYear);
+        return est;
+      }
+
+      function normalizeItem(raw) {
+        // Normalize fields from YAML into a lean object
+        const title = raw.title || raw.name || raw.full_name || raw.short_name || raw.id || 'Unknown';
+        const item = {
+          title,
+          year: raw.year ? Number(raw.year) : (deriveYearFromDeadline(raw.deadline) || null),
+          // Prefer explicit submission/paper deadlines if present
+          deadline: raw.deadline || raw.submission_deadline || raw.paper_deadline || raw.submission_date || null,
+          timezone: raw.timezone || raw.tz || 'UTC',
+          date_range: raw.date || raw.start ? (raw.date || `${raw.start || ''} – ${raw.end || ''}`) : null,
+          link: raw.link || raw.url || null,
+          comment: raw.comment || null,
+          location: raw.place || raw.location || null,
+        };
+        return item;
+      }
+
+      function getHostname(url) {
+        try {
+          return new URL(String(url)).hostname.replace(/^www\./, '');
+        } catch {
+          return null;
+        }
+      }
+
+      async function fetchTextWithFallback(url) {
+        try {
+          const resp = await fetch(url, { cache: 'no-store' });
+          if (resp.ok) return await resp.text();
+        } catch {}
+        try {
+          const proxy = 'https://r.jina.ai/' + url;
+          const resp2 = await fetch(proxy, { cache: 'no-store' });
+          if (resp2.ok) return await resp2.text();
+        } catch {}
+        return null;
+      }
+
+      function parseAISTATSDateFromHtml(htmlText) {
+        if (!htmlText) return null;
+        // Prefer Full Paper Submission Deadline; fallback to Abstract Submission
+        const patterns = [
+          /Full\s*Paper\s*Submission\s*Deadline[\s\S]*?([A-Za-z]{3})\s(\d{1,2})\s'?((?:\d{2})|(?:\d{4}))/i,
+          /Abstract\s*Submission\s*Deadline[\s\S]*?([A-Za-z]{3})\s(\d{1,2})\s'?((?:\d{2})|(?:\d{4}))/i,
+        ];
+        for (const re of patterns) {
+          const m = htmlText.match(re);
+          if (m) {
+            const monStr = m[1];
+            const dayStr = m[2];
+            const yrStr = m[3];
+            const month = new Date(Date.parse(monStr + ' 1, 2000')).getMonth() + 1; // 1-12
+            if (!month) continue;
+            const day = String(parseInt(dayStr, 10)).padStart(2, '0');
+            const year = (yrStr.length === 2 ? 2000 + parseInt(yrStr, 10) : parseInt(yrStr, 10));
+            const mm = String(month).padStart(2, '0');
+            // AoE end-of-day submission
+            return { dateStr: `${year}-${mm}-${day} 23:59:59 AoE`, year };
+          }
+        }
+        return null;
+      }
+
+      async function fetchAISTATSOfficialChoice() {
+        const currentYear = new Date().getFullYear();
+        const yearsToTry = [currentYear, currentYear + 1, currentYear - 1];
+        for (const y of yearsToTry) {
+          const url = `https://virtual.aistats.org/Conferences/${y}`;
+          const html = await fetchTextWithFallback(url);
+          if (!html) continue;
+          // Quick check page is that year
+          if (!new RegExp(String(y)).test(html)) continue;
+          const parsed = parseAISTATSDateFromHtml(html);
+          if (!parsed) continue;
+          const d = parseDeadline(parsed.dateStr, 'AoE');
+          if (!d) continue;
+          if (d.getTime() <= Date.now()) continue; // upcoming only
+          return {
+            estimated: false,
+            title: 'AISTATS',
+            year: y,
+            deadlineDate: d,
+            timezone: 'AoE',
+            source: 'Official',
+            link: url,
+          };
+        }
+        return null;
+      }
+
+      function parseAAMASDateFromHtml(htmlText) {
+        if (!htmlText) return null;
+        // Prefer Paper submission; fallback to Abstract submission
+        const patterns = [
+          /Paper\s*submission\s*:\s*([A-Za-z]{3})\s(\d{1,2}),\s(\d{4})/i,
+          /Abstract\s*submission\s*:\s*([A-Za-z]{3})\s(\d{1,2}),\s(\d{4})/i,
+        ];
+        for (const re of patterns) {
+          const m = htmlText.match(re);
+          if (m) {
+            const monStr = m[1];
+            const dayStr = m[2];
+            const yrStr = m[3];
+            const month = new Date(Date.parse(monStr + ' 1, 2000')).getMonth() + 1;
+            if (!month) continue;
+            const day = String(parseInt(dayStr, 10)).padStart(2, '0');
+            const year = parseInt(yrStr, 10);
+            const mm = String(month).padStart(2, '0');
+            return { dateStr: `${year}-${mm}-${day} 23:59:59 AoE`, year };
+          }
+        }
+        return null;
+      }
+
+      async function fetchAAMASOfficialChoice() {
+        const currentYear = new Date().getFullYear();
+        const yearsToTry = [currentYear, currentYear + 1, currentYear - 1];
+        for (const y of yearsToTry) {
+          const url = `https://cyprusconferences.org/aamas${y}/call-for-papers-main-track/`;
+          const html = await fetchTextWithFallback(url);
+          if (!html) continue;
+          if (!new RegExp(String(y)).test(html)) continue;
+          const parsed = parseAAMASDateFromHtml(html);
+          if (!parsed) continue;
+          const d = parseDeadline(parsed.dateStr, 'AoE');
+          if (!d) continue;
+          if (d.getTime() <= Date.now()) continue; // upcoming only
+          return {
+            estimated: false,
+            title: 'AAMAS',
+            year: y,
+            deadlineDate: d,
+            timezone: 'AoE',
+            source: 'Official',
+            link: url,
+          };
+        }
+        return null;
+      }
+
+      // Normalize strings for robust alias matching (e.g., "AISTATS 2026" → "aistats")
+      function normalizeForMatch(text) {
+        return String(text || '')
+          .toLowerCase()
+          .replace(/\b20\d{2}\b/g, ' ') // drop standalone years
+          .replace(/[^a-z0-9]+/g, ' ')     // non-alphanumerics → space
+          .replace(/\s+/g, ' ')           // collapse spaces
+          .trim();
+      }
+
+      function matchTarget(itemTitle, target) {
+        const normalizedTitle = normalizeForMatch(itemTitle);
+        return target.aliases.some(alias => {
+          const normAlias = normalizeForMatch(alias);
+          if (!normAlias) return false;
+          return (
+            normalizedTitle === normAlias ||
+            normalizedTitle.startsWith(normAlias + ' ') ||
+            normalizedTitle.endsWith(' ' + normAlias) ||
+            normalizedTitle.includes(' ' + normAlias + ' ')
+          );
+        });
+      }
+
+      async function fetchYaml() {
+        let lastErr = null;
+        for (const url of YAML_URLS) {
+          try {
+            const resp = await fetch(url, { cache: 'no-store' });
+            if (!resp.ok) throw new Error(`Failed to fetch YAML (${resp.status}) from ${url}`);
+            const text = await resp.text();
+            const doc = window.jsyaml.load(text);
+            if (!Array.isArray(doc)) throw new Error('Unexpected YAML format');
+            return doc.map(normalizeItem);
+          } catch (err) {
+            lastErr = err;
+          }
+        }
+        throw lastErr || new Error('Failed to fetch any YAML source');
+      }
+
+      function renderRows(results) {
+        const tbody = document.querySelector('#conf-body');
+        tbody.innerHTML = '';
+
+        // Sort: upcoming first by daysLeft, then passed
+        const sorted = [...results].sort((a, b) => {
+          if (a.deadlineDate && b.deadlineDate) {
+            const ad = daysUntil(a.deadlineDate);
+            const bd = daysUntil(b.deadlineDate);
+            const aPassed = a.deadlineDate.getTime() <= Date.now();
+            const bPassed = b.deadlineDate.getTime() <= Date.now();
+            if (aPassed !== bPassed) return aPassed ? 1 : -1;
+            return ad - bd;
+          }
+          if (a.deadlineDate) return -1;
+          if (b.deadlineDate) return 1;
+          return a.title.localeCompare(b.title);
+        });
+
+        for (const r of sorted) {
+          const tr = document.createElement('tr');
+
+          const days = r.deadlineDate ? daysUntil(r.deadlineDate) : null;
+          const passed = r.deadlineDate ? (r.deadlineDate.getTime() <= Date.now()) : false;
+
+          const deadlineDisp = r.deadlineDate ? formatDateTimeInTimezone(r.deadlineDate, r.timezone) : 'Unknown';
+          
+          // Create Google Calendar link
+          let calendarLink = '';
+          if (r.deadlineDate) {
+            const startDate = r.deadlineDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            const endDate = new Date(r.deadlineDate.getTime() + 2 * 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            const title = encodeURIComponent(r.title + ' ' + r.year + ' - Submission Deadline');
+            const details = encodeURIComponent('Conference submission deadline for ' + r.title + ' ' + r.year);
+            calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}`;
+          }
+
+          tr.innerHTML = `
+            <td>
+              <div style="font-weight:600">${r.title}</div>
+              ${r.link ? `<div class="small"><a href="${r.link}" target="_blank" rel="noreferrer noopener">Conference Website</a></div>` : ''}
+              ${r.source ? `<div class="small">${r.source}</div>` : ''}
+            </td>
+            <td>
+              <div>${deadlineDisp}</div>
+            </td>
+            <td>
+              ${days === null ? '<span class="chip danger">Unknown</span>' : passed ? '<span class="chip danger">Passed</span>' : `<span class=\"chip info\">${days} day${days === 1 ? '' : 's'} left</span>`}
+            </td>
+            <td>
+              ${calendarLink ? `<a href="${calendarLink}" target="_blank" rel="noreferrer noopener" class="small">📅 Add to Calendar</a>` : ''}
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        }
+      }
+
+      function setLoading(isLoading, message) {
+        const badge = document.querySelector('#last-updated');
+        if (badge) badge.textContent = message || '';
+      }
+
+      async function loadAndRender() {
+        try {
+          setLoading(true, 'Loading…');
+          const data = await fetchYaml();
+
+          // Optionally enhance dataset with live official deadlines via CORS-friendly JSON endpoints
+          // Known JSON feeds map (avoid hardcoding dates; fetch authoritative structured data when possible)
+          const LIVE_JSON_FEEDS = {
+            // Example placeholder: AISTATS sometimes exposes JSON on the main site; if available, add here.
+            // 'AISTATS': 'https://aistats.org/data.json'
+          };
+
+          // Group by target conference
+          const results = [];
+          for (const target of TARGETS) {
+            // Ensure we match items even if the title contains extra words/years (e.g., "AISTATS 2026")
+            const group = data.filter(item => matchTarget(item.title, target));
+            if (group.length === 0) {
+              results.push({
+                estimated: true,
+                title: target.key,
+                year: new Date().getFullYear(),
+                deadlineDate: null,
+                timezone: null,
+                source: 'No history found',
+                link: null,
+              });
+              continue;
+            }
+
+            // Prefer the upcoming edition (e.g., if latest passed, estimate next year)
+            let choice = pickUpcomingEntry(group);
+
+            // AISTATS: Prefer official site scrape if available (no hardcoding years)
+            if (target.key === 'AISTATS') {
+              try {
+                const aistatsOfficial = await fetchAISTATSOfficialChoice();
+                if (aistatsOfficial) {
+                  choice = aistatsOfficial;
+                }
+              } catch {}
+            }
+
+            // AAMAS: Prefer official site scrape if available (no hardcoding years)
+            if (target.key === 'AAMAS') {
+              try {
+                const aamasOfficial = await fetchAAMASOfficialChoice();
+                if (aamasOfficial) {
+                  choice = aamasOfficial;
+                }
+              } catch {}
+            }
+
+            // Apply manual official overrides if available and more up-to-date
+          const overrides = OFFICIAL_OVERRIDES[target.key] || [];
+          if (overrides.length > 0) {
+            const now = new Date();
+            // Prefer the nearest upcoming override
+            const sortedOverrides = [...overrides].sort((a, b) => {
+              const ad = parseDeadline(a.deadline, a.timezone);
+              const bd = parseDeadline(b.deadline, b.timezone);
+              if (!ad && !bd) return 0;
+              if (!ad) return 1;
+              if (!bd) return -1;
+              return ad.getTime() - bd.getTime();
+            });
+            for (const o of sortedOverrides) {
+              const od = parseDeadline(o.deadline, o.timezone);
+              if (od && od.getTime() >= now.getTime()) {
+                choice = {
+                  estimated: false,
+                  title: target.key,
+                  year: o.year,
+                  deadlineDate: od,
+                  timezone: o.timezone || 'UTC',
+                  source: 'Official',
+                  link: o.link || null,
+                };
+                break;
+              }
+            }
+          }
+            if (choice) {
+              // Use manual override link if available, otherwise try to find from dataset
+              if (LATEST_LINKS[target.key]) {
+                choice.link = LATEST_LINKS[target.key];
+              } else if (!choice.link) {
+                // Get all entries with links, sorted by most recent year
+                const entriesWithLinks = group.filter(e => e.link).sort(byMostRecentYear);
+                if (entriesWithLinks.length > 0) {
+                  choice.link = entriesWithLinks[0].link;
+                }
+              }
+              // Try to set a trusted conference website if missing
+              if (LATEST_LINKS[target.key]) {
+                choice.link = LATEST_LINKS[target.key];
+              } else if (!choice.link) {
+                const entriesWithLinks = group.filter(e => e.link).sort(byMostRecentYear);
+                if (entriesWithLinks.length > 0) {
+                  choice.link = entriesWithLinks[0].link;
+                }
+              }
+
+              // If link domain is a known official conference site and we have a parsed deadline, force Official
+              const host = choice.link ? getHostname(choice.link) : null;
+              const knownHosts = [
+                'iclr.cc', 'neurips.cc', 'icml.cc', 'ijcai.org', 'aaai.org', 'aistats.org',
+                'roboticsconference.org', 'icra2024.org', 'iros2024.org', 'auai.org', 'rldm.org',
+                'rlc-conference.cc', 'ecai2024.eu'
+              ];
+              const isIcapsHost = host && /icaps\d{2}\.icaps-conference\.org$/.test(host);
+              const isKnown = host && (knownHosts.includes(host) || isIcapsHost);
+              if (choice.deadlineDate && isKnown) {
+                choice.source = 'Official';
+                choice.estimated = false;
+              }
+
+              results.push(choice);
+            } else {
+              results.push({
+                estimated: true,
+                title: target.key,
+                year: new Date().getFullYear(),
+                deadlineDate: null,
+                timezone: null,
+                source: 'Insufficient historical data',
+                link: null,
+              });
+            }
+          }
+
+          renderRows(results);
+          const now = new Date();
+          setLoading(false, `Last updated: ${now.toLocaleString()}`);
+        } catch (err) {
+          console.error(err);
+          setLoading(false, 'Error loading data');
+          const tbody = document.querySelector('#conf-body');
+          if (tbody) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="5" class="small">Failed to load data: ${String(err.message || err)}</td>`;
+            tbody.innerHTML = '';
+            tbody.appendChild(tr);
+          }
+        }
+      }
+
+      function onReady() {
+        loadAndRender();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady);
+      } else {
+        onReady();
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Sequential Decision Making Conferences</h1>
+    <div class="subtitle">Track submission deadlines for reinforcement learning, robotics, and decision-making conferences.</div>
+
+    <div class="controls">
+      <span id="last-updated" class="small"></span>
+    </div>
+
+    <div class="card">
+      <table aria-describedby="desc">
+        <caption id="desc" class="sr-only">Deadlines and remaining days for selected conferences</caption>
+        <thead>
+          <tr>
+            <th>Conference</th>
+            <th>Deadline</th>
+            <th>Days Left</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="conf-body">
+          <tr>
+            <td colspan="5" class="small">Loading…</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      Sources: YAML from <a href="https://github.com/paperswithcode/ai-deadlines" target="_blank" rel="noreferrer noopener">paperswithcode/ai-deadlines</a>. Times converted to your local timezone for display.
+    </div>
+  </div>
+</body>
+</html>
