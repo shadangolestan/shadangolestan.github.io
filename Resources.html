@@ -77,15 +77,782 @@
                     <li class="paper"> Grey-Box Bayesian Optimization for Sensor Placement in Assisted Living Environments  
                       <a target="_blank" href="Files/AAAI_Slides.pdf">Download</a>
                   </ul>
-
-                  <strong>Tools:</strong><br/>
-                  <ul>
-                    <li class="paper"> Sequential Decision-Making Conference Tracker
-                      <a target="_blank" href="resources/conference-tracker.html">Open</a>
-                    </li>
-                  </ul>
-
                 </div>
+
+                <!-- Conference Deadlines Tracker -->
+                <div style="margin-top:3%;">
+                  <div style="font-family: 'Oswald', sans-serif; font-size: 24px;"><b>Conference Deadlines (Decision-Making Algorithms)</b></div>
+                  <style>
+                    .conf-tracker .card { border: 1px solid #ddd; border-radius: 4px; }
+                    .conf-tracker table { width: 100%; border-collapse: collapse; }
+                    .conf-tracker thead th { text-align: left; font-weight: 600; font-size: 13px; padding: 8px 10px; border-bottom: 1px solid #eee; }
+                    .conf-tracker tbody td { padding: 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; font-size: 13px; }
+                    .conf-tracker tbody tr:hover td { background: rgba(0,0,0,0.02); }
+                    .conf-tracker .chip { display: inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 16px; font-size: 12px; color: #555; }
+                    .conf-tracker .chip.info { color: #2dd4bf; border-color: rgba(45,212,191,0.35); }
+                    .conf-tracker .chip.danger { color: #ef4444; border-color: rgba(239,68,68,0.35); }
+                    .conf-tracker .small { font-size: 12px; color: #777; }
+                    .conf-tracker .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+                  </style>
+                  <div class="conf-tracker">
+                    <div class="controls"><span id="conf-last-updated" class="small"></span>
+                      <label class="small" style="margin-left:8px;">
+                        <input type="checkbox" id="conf-include-estimates" checked> Include estimates
+                      </label>
+                    </div>
+                    <div class="card">
+                      <table aria-describedby="conf-desc">
+                        <caption id="conf-desc" class="sr-only">Deadlines and remaining days for selected conferences</caption>
+                        <thead>
+                          <tr>
+                            <th>Conference</th>
+                            <th>Deadline</th>
+                            <th>Days Left</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody id="conf-body">
+                          <tr>
+                            <td colspan="4" class="small">Loading…</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dependencies for tracker -->
+                <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
+                <!-- Optional inline overrides for offline/local use -->
+                <script type="application/json" id="conf-overrides">{
+                  
+                }</script>
+                <script defer>
+                (function() {
+                  const YAML_URLS = [
+                    'https://raw.githubusercontent.com/paperswithcode/ai-deadlines/gh-pages/_data/conferences.yml',
+                    'https://raw.githubusercontent.com/abhshkdz/ai-deadlines/gh-pages/_data/conferences.yml',
+                  ];
+                  const CACHE_KEY = 'conf_tracker_cache_v2';
+                  const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+                  const YAML_FETCH_TIMEOUT_MS = 12000; // 12s per source
+                  const SCRAPE_TIMEOUT_MS = 4000; // 4s per official site scrape
+                  const LOCAL_OVERRIDES_URL = 'resources/conference-overrides.json';
+                  const TARGETS = [
+                    { key: 'NeurIPS', aliases: ['NeurIPS', 'NIPS'] },
+                    { key: 'ICLR', aliases: ['ICLR'] },
+                    { key: 'ICML', aliases: ['ICML'] },
+                    { key: 'IJCAI', aliases: ['IJCAI'] },
+                    { key: 'AAAI', aliases: ['AAAI'] },
+                    { key: 'ECAI', aliases: ['ECAI'] },
+                    { key: 'AISTATS', aliases: ['AISTATS'] },
+                    { key: 'AAMAS', aliases: ['AAMAS'] },
+                    { key: 'RLC', aliases: ['RLC', 'Reinforcement Learning Conference'] },
+                    { key: 'CoRL', aliases: ['CoRL', 'Conference on Robot Learning'] },
+                    { key: 'RLDM', aliases: ['RLDM', 'Reinforcement Learning and Decision Making'] },
+                    { key: 'ICAPS', aliases: ['ICAPS'] },
+                    { key: 'UAI', aliases: ['UAI', 'Uncertainty in AI'] },
+                    { key: 'L4DC', aliases: ['L4DC', 'Learning for Dynamics and Control'] },
+                    { key: 'RSS', aliases: ['RSS', 'Robotics: Science and Systems'] },
+                    { key: 'ICRA', aliases: ['ICRA'] },
+                    { key: 'IROS', aliases: ['IROS'] },
+                  ];
+
+                  const LATEST_LINKS = {
+                    'L4DC': 'https://sites.google.com/usc.edu/l4dc2026/home',
+                    'ICLR': 'https://iclr.cc/',
+                    'NeurIPS': 'https://neurips.cc/',
+                    'ICML': 'https://icml.cc/',
+                    'CoRL': 'https://www.corl2024.org/',
+                    'RSS': 'https://roboticsconference.org/',
+                    'ICRA': 'https://www.icra2024.org/',
+                    'IROS': 'https://iros2024.org/',
+                    'AAAI': 'https://aaai.org/',
+                    'IJCAI': 'https://ijcai.org/',
+                    'AAMAS': 'https://cyprusconferences.org/aamas2026/call-for-papers-main-track/',
+                    'UAI': 'https://www.auai.org/',
+                    'ICAPS': 'https://icaps26.icaps-conference.org/dates/',
+                    'AISTATS': 'https://virtual.aistats.org/Conferences/2026',
+                    'RLDM': 'https://rldm.org/',
+                    'RLC': 'https://rlc-conference.cc/',
+                    'ECAI': 'https://www.ecai2024.eu/',
+                  };
+
+                  const OFFICIAL_OVERRIDES = {
+                    'ICLR': [
+                      { year: 2026, deadline: '2025-09-24 23:59:59 AoE', timezone: 'AoE', link: 'https://iclr.cc/Conferences/2026/Dates' },
+                    ],
+                    'ICAPS': [
+                      { year: 2026, deadline: '2025-12-02 23:59:59 AoE', timezone: 'AoE', link: 'https://icaps-conference.org/' },
+                    ],
+                  };
+
+                  // Minimal static fallback when offline/local and external fetches fail
+                  const STATIC_FALLBACK = Object.keys({
+                    'NeurIPS': 1, 'ICLR': 1, 'ICML': 1, 'IJCAI': 1, 'AAAI': 1, 'ECAI': 1,
+                    'AISTATS': 1, 'AAMAS': 1, 'RLC': 1, 'CoRL': 1, 'RLDM': 1, 'ICAPS': 1,
+                    'UAI': 1, 'L4DC': 1, 'RSS': 1, 'ICRA': 1, 'IROS': 1
+                  }).map(key => ({ title: key, link: LATEST_LINKS[key] || null }));
+
+                  function safeParseJSON(value, fallback = null) {
+                    try { return JSON.parse(value); } catch { return fallback; }
+                  }
+
+                  function parseTimezoneOffset(tz) {
+                    if (!tz) return 'Z';
+                    const tzTrim = String(tz).trim();
+                    if (tzTrim.toLowerCase() === 'aoe') return '-12:00';
+                    if (tzTrim.toUpperCase() === 'UTC') return 'Z';
+                    const m = tzTrim.match(/^UTC\s*([+-])(\d{1,2})(?::?(\d{2}))?$/i);
+                    if (m) {
+                      const sign = m[1] === '-' ? '-' : '+';
+                      const hh = m[2].padStart(2, '0');
+                      const mm = (m[3] || '00').padStart(2, '0');
+                      return `${sign}${hh}:${mm}`;
+                    }
+                    return 'Z';
+                  }
+
+                  function extractInlineTimezone(deadlineStr) {
+                    const raw = String(deadlineStr || '').trim();
+                    const m = raw.match(/\s+(AOE|AoE|UTC(?:\s*[+-]\s*\d{1,2}(?::?\d{2})?)?)$/i);
+                    if (!m) {
+                      return { cleaned: raw, inlineTz: null };
+                    }
+                    const cleaned = raw.slice(0, raw.length - m[0].length).trim();
+                    const inlineTz = m[1];
+                    return { cleaned, inlineTz };
+                  }
+
+                  function toIsoWithTimezone(deadlineStr, tz) {
+                    if (!deadlineStr) return null;
+                    const { cleaned, inlineTz } = extractInlineTimezone(deadlineStr);
+                    if (!cleaned) return null;
+                    if (/T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:?\d{2})$/.test(cleaned)) {
+                      return cleaned.replace(/(\+|\-)(\d{2})(\d{2})$/, '$1$2:$3');
+                    }
+                    const base = cleaned.replace(' ', 'T');
+                    const tzCandidate = tz || inlineTz || 'UTC';
+                    const tzOff = parseTimezoneOffset(tzCandidate);
+                    if (/T\d{2}:\d{2}(:\d{2})?$/.test(base)) {
+                      return base + (tzOff === 'Z' ? 'Z' : tzOff);
+                    }
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(base)) {
+                      return base + 'T23:59:59' + (tzOff === 'Z' ? 'Z' : tzOff);
+                    }
+                    return null;
+                  }
+
+                  function parseDeadline(deadlineStr, timezone) {
+                    const iso = toIsoWithTimezone(deadlineStr, timezone);
+                    if (!iso) return null;
+                    const d = new Date(iso);
+                    if (isNaN(d.getTime())) {
+                      const m = String(deadlineStr).match(/^(\d{4}-\d{2}-\d{2})/);
+                      if (m) {
+                        const dd = new Date(m[1] + 'T23:59:59Z');
+                        return isNaN(dd.getTime()) ? null : dd;
+                      }
+                      return null;
+                    }
+                    return d;
+                  }
+
+                  function daysUntil(date) {
+                    const now = new Date();
+                    const ms = date.getTime() - now.getTime();
+                    if (ms <= 0) return 0;
+                    return Math.floor(ms / (1000 * 60 * 60 * 24));
+                  }
+
+                  function formatDateTimeInTimezone(date, tzLabel) {
+                    if (!date) return 'Unknown';
+                    const off = parseTimezoneOffset(tzLabel || 'UTC');
+                    let offsetMinutes = 0;
+                    if (off === 'Z') {
+                      offsetMinutes = 0;
+                    } else {
+                      const m = off.match(/^([+-])(\d{2}):(\d{2})$/);
+                      if (m) {
+                        const sign = m[1] === '-' ? -1 : 1;
+                        offsetMinutes = sign * (parseInt(m[2], 10) * 60 + parseInt(m[3], 10));
+                      }
+                    }
+                    const localMs = date.getTime() + offsetMinutes * 60 * 1000;
+                    const d = new Date(localMs);
+                    const y = d.getUTCFullYear();
+                    const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
+                    const da = String(d.getUTCDate()).padStart(2, '0');
+                    const hh = String(d.getUTCHours()).padStart(2, '0');
+                    const mm = String(d.getUTCMinutes()).padStart(2, '0');
+                    const tzDisp = (String(tzLabel || '').trim().toUpperCase() === 'AOE') ? 'AoE' : (off === 'Z' ? 'UTC' : `UTC${off}`);
+                    return `${y}-${mo}-${da} ${hh}:${mm} ${tzDisp}`;
+                  }
+
+                  function byMostRecentYear(a, b) {
+                    const ya = Number(a.year || 0);
+                    const yb = Number(b.year || 0);
+                    return yb - ya;
+                  }
+
+                  function deriveYearFromDeadline(deadlineStr) {
+                    const m = String(deadlineStr || '').match(/^(\d{4})/);
+                    return m ? Number(m[1]) : null;
+                  }
+
+                  function estimateForYear(entries, targetYear) {
+                    const withYears = entries.map(e => ({
+                      entry: e,
+                      year: Number(e.year || deriveYearFromDeadline(e.deadline)) || null,
+                    })).filter(x => x.year);
+                    if (withYears.length === 0) return null;
+                    withYears.sort((a, b) => b.year - a.year);
+                    const recent = withYears.find(x => x.year < targetYear) || withYears[0];
+                    const d = parseDeadline(recent.entry.deadline, recent.entry.timezone);
+                    if (!d) return null;
+                    const recentDeadlineYear = d.getFullYear();
+                    const deltaYears = recentDeadlineYear - recent.year;
+                    const est = new Date(d);
+                    est.setFullYear(targetYear + deltaYears);
+                    if (est < new Date()) {
+                      est.setFullYear(targetYear + deltaYears + 1);
+                    }
+                    return {
+                      estimated: true,
+                      title: recent.entry.title,
+                      year: targetYear,
+                      deadlineDate: est,
+                      timezone: recent.entry.timezone || 'UTC',
+                      source: 'Estimated from ' + recent.year + ' pattern',
+                    };
+                  }
+
+                  function pickUpcomingEntry(groupEntries) {
+                    const currentYear = new Date().getFullYear();
+                    const nextYear = currentYear + 1;
+                    const prevYear = currentYear - 1;
+
+                    function officialForYear(y) {
+                      const entries = groupEntries.filter(e => Number(e.year) === y);
+                      if (entries.length === 0) return null;
+                      const upcoming = entries
+                        .map(e => ({ e, d: parseDeadline(e.deadline, e.timezone) }))
+                        .filter(x => x.d && x.d.getTime() > Date.now())
+                        .sort((a, b) => a.d.getTime() - b.d.getTime());
+                      const chosen = upcoming[0] || null;
+                      if (!chosen) return null;
+                      return {
+                        estimated: false,
+                        title: chosen.e.title,
+                        year: y,
+                        deadlineDate: chosen.d,
+                        timezone: chosen.e.timezone || 'UTC',
+                        source: 'Official',
+                        link: chosen.e.link || null,
+                      };
+                    }
+
+                    const currentOfficial = officialForYear(currentYear);
+                    if (currentOfficial) return currentOfficial;
+                    const nextOfficial = officialForYear(nextYear);
+                    if (nextOfficial) return nextOfficial;
+
+                    const est = estimateForYear(groupEntries, currentYear) || estimateForYear(groupEntries, nextYear) || estimateForYear(groupEntries, prevYear);
+                    return est;
+                  }
+
+                  function normalizeItem(raw) {
+                    const title = raw.title || raw.name || raw.full_name || raw.short_name || raw.id || 'Unknown';
+                    const item = {
+                      title,
+                      year: raw.year ? Number(raw.year) : (deriveYearFromDeadline(raw.deadline) || null),
+                      deadline: raw.deadline || raw.submission_deadline || raw.paper_deadline || raw.submission_date || null,
+                      timezone: raw.timezone || raw.tz || 'UTC',
+                      date_range: raw.date || raw.start ? (raw.date || `${raw.start || ''} – ${raw.end || ''}`) : null,
+                      link: raw.link || raw.url || null,
+                      comment: raw.comment || null,
+                      location: raw.place || raw.location || null,
+                    };
+                    return item;
+                  }
+
+                  function getHostname(url) {
+                    try {
+                      return new URL(String(url)).hostname.replace(/^www\./, '');
+                    } catch {
+                      return null;
+                    }
+                  }
+
+                  function fetchWithTimeout(url, options, timeoutMs) {
+                    try {
+                      if (typeof AbortController !== 'undefined') {
+                        const controller = new AbortController();
+                        const id = setTimeout(() => controller.abort(), timeoutMs);
+                        return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
+                      }
+                    } catch {}
+                    // Fallback: no abort support
+                    return fetch(url, options);
+                  }
+
+                  async function fetchTextWithFallback(url) {
+                    try {
+                      const resp = await fetchWithTimeout(url, { cache: 'no-store' }, SCRAPE_TIMEOUT_MS);
+                      if (resp.ok) return await resp.text();
+                    } catch {}
+                    try {
+                      const proxy = 'https://r.jina.ai/' + url;
+                      const resp2 = await fetchWithTimeout(proxy, { cache: 'no-store' }, SCRAPE_TIMEOUT_MS);
+                      if (resp2.ok) return await resp2.text();
+                    } catch {}
+                    return null;
+                  }
+
+                  function parseAISTATSDateFromHtml(htmlText) {
+                    if (!htmlText) return null;
+                    const patterns = [
+                      /Full\s*Paper\s*Submission\s*Deadline[\s\S]*?([A-Za-z]{3})\s(\d{1,2})\s'?((?:\d{2})|(?:\d{4}))/i,
+                      /Abstract\s*Submission\s*Deadline[\s\S]*?([A-Za-z]{3})\s(\d{1,2})\s'?((?:\d{2})|(?:\d{4}))/i,
+                    ];
+                    for (const re of patterns) {
+                      const m = htmlText.match(re);
+                      if (m) {
+                        const monStr = m[1];
+                        const dayStr = m[2];
+                        const yrStr = m[3];
+                        const month = new Date(Date.parse(monStr + ' 1, 2000')).getMonth() + 1;
+                        if (!month) continue;
+                        const day = String(parseInt(dayStr, 10)).padStart(2, '0');
+                        const year = (yrStr.length === 2 ? 2000 + parseInt(yrStr, 10) : parseInt(yrStr, 10));
+                        const mm = String(month).padStart(2, '0');
+                        return { dateStr: `${year}-${mm}-${day} 23:59:59 AoE`, year };
+                      }
+                    }
+                    return null;
+                  }
+
+                  async function fetchAISTATSOfficialChoice() {
+                    const currentYear = new Date().getFullYear();
+                    const yearsToTry = [currentYear, currentYear + 1];
+                    for (const y of yearsToTry) {
+                      const url = `https://virtual.aistats.org/Conferences/${y}`;
+                      const html = await fetchTextWithFallback(url);
+                      if (!html) continue;
+                      if (!new RegExp(String(y)).test(html)) continue;
+                      const parsed = parseAISTATSDateFromHtml(html);
+                      if (!parsed) continue;
+                      const d = parseDeadline(parsed.dateStr, 'AoE');
+                      if (!d) continue;
+                      if (d.getTime() <= Date.now()) continue;
+                      return {
+                        estimated: false,
+                        title: 'AISTATS',
+                        year: y,
+                        deadlineDate: d,
+                        timezone: 'AoE',
+                        source: 'Official',
+                        link: url,
+                      };
+                    }
+                    return null;
+                  }
+
+                  function parseAAMASDateFromHtml(htmlText) {
+                    if (!htmlText) return null;
+                    const patterns = [
+                      /Paper\s*submission\s*:\s*([A-Za-z]{3})\s(\d{1,2}),\s(\d{4})/i,
+                      /Abstract\s*submission\s*:\s*([A-Za-z]{3})\s(\d{1,2}),\s(\d{4})/i,
+                    ];
+                    for (const re of patterns) {
+                      const m = htmlText.match(re);
+                      if (m) {
+                        const monStr = m[1];
+                        const dayStr = m[2];
+                        const yrStr = m[3];
+                        const month = new Date(Date.parse(monStr + ' 1, 2000')).getMonth() + 1;
+                        if (!month) continue;
+                        const day = String(parseInt(dayStr, 10)).padStart(2, '0');
+                        const year = parseInt(yrStr, 10);
+                        const mm = String(month).padStart(2, '0');
+                        return { dateStr: `${year}-${mm}-${day} 23:59:59 AoE`, year };
+                      }
+                    }
+                    return null;
+                  }
+
+                  async function fetchAAMASOfficialChoice() {
+                    const currentYear = new Date().getFullYear();
+                    const yearsToTry = [currentYear, currentYear + 1];
+                    for (const y of yearsToTry) {
+                      const url = `https://cyprusconferences.org/aamas${y}/call-for-papers-main-track/`;
+                      const html = await fetchTextWithFallback(url);
+                      if (!html) continue;
+                      if (!new RegExp(String(y)).test(html)) continue;
+                      const parsed = parseAAMASDateFromHtml(html);
+                      if (!parsed) continue;
+                      const d = parseDeadline(parsed.dateStr, 'AoE');
+                      if (!d) continue;
+                      if (d.getTime() <= Date.now()) continue;
+                      return {
+                        estimated: false,
+                        title: 'AAMAS',
+                        year: y,
+                        deadlineDate: d,
+                        timezone: 'AoE',
+                        source: 'Official',
+                        link: url,
+                      };
+                    }
+                    return null;
+                  }
+
+                  function normalizeForMatch(text) {
+                    return String(text || '')
+                      .toLowerCase()
+                      .replace(/\b20\d{2}\b/g, ' ')
+                      .replace(/[^a-z0-9]+/g, ' ')
+                      .replace(/\s+/g, ' ')
+                      .trim();
+                  }
+
+                  function matchTarget(itemTitle, target) {
+                    const normalizedTitle = normalizeForMatch(itemTitle);
+                    return target.aliases.some(alias => {
+                      const normAlias = normalizeForMatch(alias);
+                      if (!normAlias) return false;
+                      return (
+                        normalizedTitle === normAlias ||
+                        normalizedTitle.startsWith(normAlias + ' ') ||
+                        normalizedTitle.endsWith(' ' + normAlias) ||
+                        normalizedTitle.includes(' ' + normAlias + ' ')
+                      );
+                    });
+                  }
+
+                  async function fetchYaml() {
+                    async function tryUrl(url) {
+                      const resp = await fetchWithTimeout(url, { cache: 'no-store' }, YAML_FETCH_TIMEOUT_MS);
+                      if (!resp.ok) throw new Error(`Failed to fetch YAML (${resp.status}) from ${url}`);
+                      const text = await resp.text();
+                      const doc = window.jsyaml.load(text);
+                      if (!Array.isArray(doc)) throw new Error('Unexpected YAML format');
+                      return doc.map(normalizeItem);
+                    }
+                    try {
+                      // Race the sources; take the first successful one
+                      const results = await Promise.any(YAML_URLS.map(u => tryUrl(u)));
+                      return results;
+                    } catch (errAny) {
+                      // Fallback: try sequentially
+                      let lastErr = errAny;
+                      for (const url of YAML_URLS) {
+                        try { return await tryUrl(url); } catch (e) { lastErr = e; }
+                      }
+                      throw lastErr || new Error('Failed to fetch any YAML source');
+                    }
+                  }
+
+                  function renderRows(results) {
+                    const tbody = document.querySelector('#conf-body');
+                    if (!tbody) return;
+                    tbody.innerHTML = '';
+
+                    if (!results || results.length === 0) {
+                      const tr = document.createElement('tr');
+                      tr.innerHTML = '<td colspan="4" class="small">No conferences to display. Try enabling estimates or refreshing.</td>';
+                      tbody.appendChild(tr);
+                      return;
+                    }
+
+                    const sorted = [...results].sort((a, b) => {
+                      if (a.deadlineDate && b.deadlineDate) {
+                        const ad = daysUntil(a.deadlineDate);
+                        const bd = daysUntil(b.deadlineDate);
+                        const aPassed = a.deadlineDate.getTime() <= Date.now();
+                        const bPassed = b.deadlineDate.getTime() <= Date.now();
+                        if (aPassed !== bPassed) return aPassed ? 1 : -1;
+                        return ad - bd;
+                      }
+                      if (a.deadlineDate) return -1;
+                      if (b.deadlineDate) return 1;
+                      return a.title.localeCompare(b.title);
+                    });
+
+                    for (const r of sorted) {
+                      const tr = document.createElement('tr');
+                      const days = r.deadlineDate ? daysUntil(r.deadlineDate) : null;
+                      const passed = r.deadlineDate ? (r.deadlineDate.getTime() <= Date.now()) : false;
+                      const deadlineDisp = r.deadlineDate ? formatDateTimeInTimezone(r.deadlineDate, r.timezone) : 'Unknown';
+                      let calendarLink = '';
+                      if (r.deadlineDate) {
+                        const startDate = r.deadlineDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                        const endDate = new Date(r.deadlineDate.getTime() + 2 * 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                        const title = encodeURIComponent(r.title + ' ' + r.year + ' - Submission Deadline');
+                        const details = encodeURIComponent('Conference submission deadline for ' + r.title + ' ' + r.year);
+                        calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}`;
+                      }
+
+                      tr.innerHTML = `
+                        <td>
+                          <div style="font-weight:600">${r.title}</div>
+                          ${r.link ? `<div class="small"><a href="${r.link}" target="_blank" rel="noreferrer noopener">Conference Website</a></div>` : ''}
+                          ${r.source ? `<div class="small">${r.source}</div>` : ''}
+                        </td>
+                        <td>
+                          <div>${deadlineDisp}</div>
+                        </td>
+                        <td>
+                          ${days === null ? '<span class="chip danger">Unknown</span>' : passed ? '<span class="chip danger">Passed</span>' : `<span class=\"chip info\">${days} day${days === 1 ? '' : 's'} left</span>`}
+                        </td>
+                        <td>
+                          ${calendarLink ? `<a href="${calendarLink}" target="_blank" rel="noreferrer noopener" class="small">📅 Add to Calendar</a>` : ''}
+                        </td>
+                      `;
+
+                      tbody.appendChild(tr);
+                    }
+                  }
+
+                  function setLoading(isLoading, message) {
+                    const badge = document.querySelector('#conf-last-updated');
+                    if (badge) badge.textContent = message || '';
+                  }
+
+                  function readCache(includeEstimates) {
+                    try {
+                      const raw = sessionStorage.getItem(CACHE_KEY + (includeEstimates ? ':with_est' : ':no_est'));
+                      if (!raw) return null;
+                      const obj = safeParseJSON(raw, null);
+                      if (!obj || !obj.timestamp || !obj.results) return null;
+                      if (Date.now() - obj.timestamp > CACHE_TTL_MS) return null;
+                      return obj.results;
+                    } catch { return null; }
+                  }
+
+                  function writeCache(results, includeEstimates) {
+                    try {
+                      const payload = { timestamp: Date.now(), results };
+                      sessionStorage.setItem(CACHE_KEY + (includeEstimates ? ':with_est' : ':no_est'), JSON.stringify(payload));
+                    } catch {}
+                  }
+
+                  function readInlineOverrides() {
+                    try {
+                      const el = document.getElementById('conf-overrides');
+                      if (!el) return null;
+                      const txt = el.textContent || '';
+                      if (!txt.trim()) return null;
+                      const obj = safeParseJSON(txt, null) || JSON.parse(txt);
+                      return obj && typeof obj === 'object' ? obj : null;
+                    } catch { return null; }
+                  }
+
+                  async function fetchLocalOverrides() {
+                    const inline = readInlineOverrides();
+                    if (inline) return inline;
+                    try {
+                      const resp = await fetchWithTimeout(LOCAL_OVERRIDES_URL, { cache: 'no-store' }, 2000);
+                      if (!resp.ok) return null;
+                      const obj = await resp.json();
+                      return obj && typeof obj === 'object' ? obj : null;
+                    } catch { return null; }
+                  }
+
+                  async function buildResultsFromYaml(data, includeEstimates) {
+                    const localOverrides = await fetchLocalOverrides();
+                    const results = [];
+                    for (const target of TARGETS) {
+                      const group = data.filter(item => matchTarget(item.title, target));
+                      if (group.length === 0) {
+                        if (includeEstimates) {
+                          results.push({
+                            estimated: true,
+                            title: target.key,
+                            year: new Date().getFullYear(),
+                            deadlineDate: null,
+                            timezone: null,
+                            source: 'No history found',
+                            link: null,
+                          });
+                        }
+                        continue;
+                      }
+
+                      // Apply local official overrides first if provided
+                      let choice = null;
+                      const local = localOverrides && localOverrides[target.key];
+                      if (local && local.deadline) {
+                        const od = parseDeadline(local.deadline, local.timezone || 'UTC');
+                        if (od) {
+                          choice = {
+                            estimated: false,
+                            title: target.key,
+                            year: local.year || od.getFullYear(),
+                            deadlineDate: od,
+                            timezone: local.timezone || 'UTC',
+                            source: 'Official (Local Override)',
+                            link: local.link || null,
+                          };
+                        }
+                      }
+
+                      // If no local override, pick from dataset
+                      if (!choice) {
+                        choice = pickUpcomingEntry(group);
+                      }
+
+                      // Only do slower official scrapes if estimates are allowed and we need better data
+                      const needsOfficialBoost = includeEstimates && (!choice || choice.estimated);
+                      if (needsOfficialBoost && target.key === 'AISTATS') {
+                        try {
+                          const aistatsOfficial = await fetchAISTATSOfficialChoice();
+                          if (aistatsOfficial) { choice = aistatsOfficial; }
+                        } catch {}
+                      }
+                      if (needsOfficialBoost && target.key === 'AAMAS') {
+                        try {
+                          const aamasOfficial = await fetchAAMASOfficialChoice();
+                          if (aamasOfficial) { choice = aamasOfficial; }
+                        } catch {}
+                      }
+
+                      const overrides = OFFICIAL_OVERRIDES[target.key] || [];
+                      if (overrides.length > 0) {
+                        const now = new Date();
+                        const sortedOverrides = [...overrides].sort((a, b) => {
+                          const ad = parseDeadline(a.deadline, a.timezone);
+                          const bd = parseDeadline(b.deadline, b.timezone);
+                          if (!ad && !bd) return 0;
+                          if (!ad) return 1;
+                          if (!bd) return -1;
+                          return ad.getTime() - bd.getTime();
+                        });
+                        for (const o of sortedOverrides) {
+                          const od = parseDeadline(o.deadline, o.timezone);
+                          if (od && od.getTime() >= now.getTime()) {
+                            choice = {
+                              estimated: false,
+                              title: target.key,
+                              year: o.year,
+                              deadlineDate: od,
+                              timezone: o.timezone || 'UTC',
+                              source: 'Official',
+                              link: o.link || null,
+                            };
+                            break;
+                          }
+                        }
+                      }
+                      if (choice) {
+                        if (LATEST_LINKS[target.key]) {
+                          choice.link = LATEST_LINKS[target.key];
+                        } else if (!choice.link) {
+                          const entriesWithLinks = group.filter(e => e.link).sort(byMostRecentYear);
+                          if (entriesWithLinks.length > 0) {
+                            choice.link = entriesWithLinks[0].link;
+                          }
+                        }
+                        const host = choice.link ? getHostname(choice.link) : null;
+                        const knownHosts = [
+                          'iclr.cc', 'neurips.cc', 'icml.cc', 'ijcai.org', 'aaai.org', 'aistats.org',
+                          'roboticsconference.org', 'icra2024.org', 'iros2024.org', 'auai.org', 'rldm.org',
+                          'rlc-conference.cc', 'ecai2024.eu'
+                        ];
+                        const isIcapsHost = host && /icaps\d{2}\.icaps-conference\.org$/.test(host);
+                        const isKnown = host && (knownHosts.includes(host) || isIcapsHost);
+                        if (choice.deadlineDate && isKnown) {
+                          choice.source = 'Official';
+                          choice.estimated = false;
+                        }
+
+                        results.push(choice);
+                      } else {
+                        // If we reached here, show at least a skeletal entry
+                        results.push({
+                          estimated: true,
+                          title: target.key,
+                          year: new Date().getFullYear(),
+                          deadlineDate: null,
+                          timezone: null,
+                          source: 'Fallback',
+                          link: LATEST_LINKS[target.key] || null,
+                        });
+                      }
+                    }
+                    return results;
+                  }
+
+                  async function loadAndRender(includeEstimates) {
+                    try {
+                      setLoading(true, 'Loading…');
+                      const data = await fetchYaml();
+                      const results = await buildResultsFromYaml(data, includeEstimates);
+                      if (results.length === 0 && !includeEstimates) {
+                        // Auto-fallback to estimates if strict mode yields nothing
+                        const toggle = document.getElementById('conf-include-estimates');
+                        if (toggle) toggle.checked = true;
+                        const resultsWithEst = await buildResultsFromYaml(data, true);
+                        renderRows(resultsWithEst);
+                        writeCache(resultsWithEst, true);
+                      } else {
+                        renderRows(results);
+                        writeCache(results, includeEstimates);
+                      }
+                      const now = new Date();
+                      setLoading(false, `Last updated: ${now.toLocaleString()}`);
+                    } catch (err) {
+                      console.error(err);
+                      // Fallback: render static list
+                      const nowYear = new Date().getFullYear();
+                      const fallback = STATIC_FALLBACK.map(x => ({
+                        estimated: true,
+                        title: x.title,
+                        year: nowYear,
+                        deadlineDate: null,
+                        timezone: null,
+                        source: 'Fallback',
+                        link: x.link || null,
+                      }));
+                      renderRows(fallback);
+                      setLoading(false, 'Loaded fallback list');
+                    }
+                  }
+
+                  function onReady() {
+                    const estimatesToggle = document.getElementById('conf-include-estimates');
+                    const includeEstimates = !estimatesToggle ? true : !!estimatesToggle.checked;
+                    const cached = readCache(includeEstimates);
+                    if (cached && Array.isArray(cached)) {
+                      renderRows(cached);
+                      setLoading(false, 'Loaded from cache');
+                      setTimeout(() => { loadAndRender(includeEstimates); }, 0);
+                    } else {
+                      loadAndRender(includeEstimates);
+                    }
+
+                    if (estimatesToggle) {
+                      estimatesToggle.addEventListener('change', () => {
+                        const withEst = estimatesToggle.checked;
+                        const cached2 = readCache(withEst);
+                        if (cached2 && Array.isArray(cached2)) {
+                          renderRows(cached2);
+                          setLoading(false, 'Loaded from cache');
+                          setTimeout(() => { loadAndRender(withEst); }, 0);
+                        } else {
+                          loadAndRender(withEst);
+                        }
+                      });
+                    }
+                  }
+
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', onReady);
+                  } else {
+                    onReady();
+                  }
+                })();
+                </script>
             </div> 
 
 <!-- Contact Info on the Sidebar -->
