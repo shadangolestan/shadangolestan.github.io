@@ -1,0 +1,19 @@
+[
+  { "title": "ICLR", "link": "https://iclr.cc/", "year": 2026, "deadline": "2025-09-24 23:59:59 AoE", "timezone": "AoE" },
+  { "title": "NeurIPS", "link": "https://neurips.cc/" },
+  { "title": "ICML", "link": "https://icml.cc/" },
+  { "title": "IJCAI", "link": "https://ijcai.org/" },
+  { "title": "AAAI", "link": "https://aaai.org/" },
+  { "title": "AISTATS", "link": "https://virtual.aistats.org/Conferences/2026" },
+  { "title": "AAMAS", "link": "https://cyprusconferences.org/aamas2026/call-for-papers-main-track/" },
+  { "title": "RLDM", "link": "https://rldm.org/" },
+  { "title": "RLC", "link": "https://rlc-conference.cc/" },
+  { "title": "CoRL", "link": "https://www.corl2024.org/" },
+  { "title": "RSS", "link": "https://roboticsconference.org/" },
+  { "title": "ICRA", "link": "https://www.icra2024.org/" },
+  { "title": "IROS", "link": "https://iros2024.org/" },
+  { "title": "ICAPS", "link": "https://icaps26.icaps-conference.org/dates/", "year": 2026, "deadline": "2025-12-02 23:59:59 AoE", "timezone": "AoE" },
+  { "title": "UAI", "link": "https://www.auai.org/" },
+  { "title": "L4DC", "link": "https://sites.google.com/usc.edu/l4dc2026/home" },
+  { "title": "ECAI", "link": "https://www.ecai2024.eu/" }
+]

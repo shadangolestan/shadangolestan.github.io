@@ -99,6 +99,7 @@
                       <label class="small" style="margin-left:8px;">
                         <input type="checkbox" id="conf-include-estimates" checked> Include estimates
                       </label>
+                      <button id="conf-refresh" class="btn btn-xs" style="margin-left:8px;">Refresh</button>
                     </div>
                     <div class="card">
                       <table aria-describedby="conf-desc">
@@ -138,6 +139,24 @@
                   const YAML_FETCH_TIMEOUT_MS = 12000; // 12s per source
                   const SCRAPE_TIMEOUT_MS = 4000; // 4s per official site scrape
                   const LOCAL_OVERRIDES_URL = 'resources/conference-overrides.json';
+                  const LOCAL_PRIMARY_URL = 'resources/conf-data.json';
+                  // Promise.any polyfill for older browsers
+                  if (!Promise.any) {
+                    Promise.any = function(promises) {
+                      return new Promise(function(resolve, reject) {
+                        let pending = promises.length;
+                        const errors = [];
+                        if (pending === 0) return reject(new Error('All promises were rejected'));
+                        promises.forEach(function(p, i) {
+                          Promise.resolve(p).then(resolve, function(err) {
+                            errors[i] = err;
+                            if (--pending === 0) reject(new Error('All promises were rejected'));
+                          });
+                        });
+                      });
+                    };
+                  }
+
                   const TARGETS = [
                     { key: 'NeurIPS', aliases: ['NeurIPS', 'NIPS'] },
                     { key: 'ICLR', aliases: ['ICLR'] },
@@ -659,6 +678,30 @@
                     } catch { return null; }
                   }
 
+                  async function fetchLocalPrimary() {
+                    try {
+                      const resp = await fetchWithTimeout(LOCAL_PRIMARY_URL, { cache: 'no-store' }, 1500);
+                      if (!resp.ok) return null;
+                      const arr = await resp.json();
+                      if (!Array.isArray(arr)) return null;
+                      const out = [];
+                      for (const it of arr) {
+                        const title = it.title || it.key || 'Unknown';
+                        const dl = it.deadline ? parseDeadline(it.deadline, it.timezone || 'UTC') : null;
+                        out.push({
+                          estimated: !dl,
+                          title,
+                          year: it.year || (dl ? dl.getFullYear() : new Date().getFullYear()),
+                          deadlineDate: dl,
+                          timezone: it.timezone || 'UTC',
+                          source: dl ? 'Local' : 'Local (no date)',
+                          link: it.link || null,
+                        });
+                      }
+                      return out;
+                    } catch { return null; }
+                  }
+
                   async function buildResultsFromYaml(data, includeEstimates) {
                     const localOverrides = await fetchLocalOverrides();
                     const results = [];
@@ -823,20 +866,28 @@
                     const estimatesToggle = document.getElementById('conf-include-estimates');
                     const includeEstimates = !estimatesToggle ? true : !!estimatesToggle.checked;
 
-                    // Immediately show static fallback so the table is never empty
+                    // Immediately show local primary if available; otherwise static fallback
                     try {
-                      const nowYear = new Date().getFullYear();
-                      const immediate = STATIC_FALLBACK.map(x => ({
-                        estimated: true,
-                        title: x.title,
-                        year: nowYear,
-                        deadlineDate: null,
-                        timezone: null,
-                        source: 'Fallback',
-                        link: x.link || null,
-                      }));
-                      renderRows(immediate);
-                      setLoading(true, 'Loading live…');
+                      (async function() {
+                        const localPrimary = await fetchLocalPrimary();
+                        if (localPrimary && localPrimary.length > 0) {
+                          renderRows(localPrimary);
+                          setLoading(false, 'Loaded local data');
+                        } else {
+                          const nowYear = new Date().getFullYear();
+                          const immediate = STATIC_FALLBACK.map(x => ({
+                            estimated: true,
+                            title: x.title,
+                            year: nowYear,
+                            deadlineDate: null,
+                            timezone: null,
+                            source: 'Fallback',
+                            link: x.link || null,
+                          }));
+                          renderRows(immediate);
+                          setLoading(true, 'Loading live…');
+                        }
+                      })();
                     } catch {}
 
                     const cached = readCache(includeEstimates);
@@ -859,6 +910,19 @@
                         } else {
                           loadAndRender(withEst);
                         }
+                      });
+                    }
+
+                    const refreshBtn = document.getElementById('conf-refresh');
+                    if (refreshBtn) {
+                      refreshBtn.addEventListener('click', () => {
+                        try {
+                          sessionStorage.removeItem(CACHE_KEY + ':with_est');
+                          sessionStorage.removeItem(CACHE_KEY + ':no_est');
+                        } catch {}
+                        const withEst = !estimatesToggle ? true : !!estimatesToggle.checked;
+                        setLoading(true, 'Refreshing…');
+                        loadAndRender(withEst);
                       });
                     }
                   }
