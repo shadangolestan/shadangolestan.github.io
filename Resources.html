@@ -346,7 +346,8 @@
                   }
 
                   function pickUpcomingEntry(groupEntries) {
-                    const currentYear = new Date().getFullYear();
+                    const now = new Date();
+                    const currentYear = now.getFullYear();
                     const nextYear = currentYear + 1;
                     const prevYear = currentYear - 1;
 
@@ -370,20 +371,37 @@
                       };
                     }
 
+                    // Rule: search Y and Y+1 for upcoming deadlines
                     const currentOfficial = officialForYear(currentYear);
                     if (currentOfficial) return currentOfficial;
                     const nextOfficial = officialForYear(nextYear);
                     if (nextOfficial) return nextOfficial;
 
-                    // As a robust fallback: if no upcoming official deadline exists,
-                    // estimate using the most recent prior year's pattern (year-1) first
-                    // to avoid far-future estimates with big shifts.
-                    const estPrev = estimateForYear(groupEntries, prevYear);
-                    if (estPrev) return estPrev;
-                    const estCurrent = estimateForYear(groupEntries, currentYear);
-                    if (estCurrent) return estCurrent;
-                    const estNext = estimateForYear(groupEntries, nextYear);
-                    return estNext;
+                    // If none, estimate strictly from Y or Y-1 patterns (no older years)
+                    const allowedBases = groupEntries
+                      .filter(e => Number(e.year) === currentYear || Number(e.year) === prevYear)
+                      .map(e => ({ e, d: parseDeadline(e.deadline, e.timezone) }))
+                      .filter(x => x.d);
+
+                    if (allowedBases.length === 0) return null;
+                    // Prefer Y over Y-1 as base
+                    allowedBases.sort((a, b) => (Number(b.e.year) - Number(a.e.year)) || (b.d.getTime() - a.d.getTime()));
+                    const base = allowedBases[0];
+                    const est = new Date(base.d.getTime());
+                    // Project to Y; if already passed, project to Y+1
+                    est.setFullYear(currentYear);
+                    if (est.getTime() <= now.getTime()) {
+                      est.setFullYear(nextYear);
+                    }
+                    return {
+                      estimated: true,
+                      title: base.e.title,
+                      year: est.getFullYear(),
+                      deadlineDate: est,
+                      timezone: base.e.timezone || 'UTC',
+                      source: `Estimated from ${base.e.year}`,
+                      link: base.e.link || null,
+                    };
                   }
 
                   function normalizeItem(raw) {
