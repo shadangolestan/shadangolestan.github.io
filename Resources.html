@@ -756,11 +756,20 @@
                       const results = await Promise.any(YAML_URLS.map(u => tryUrl(u)));
                       return results;
                     } catch (errAny) {
-                      // Fallback: try sequentially
+                      // Fallback: try sequentially, then local bundled copy
                       let lastErr = errAny;
                       for (const url of YAML_URLS) {
                         try { return await tryUrl(url); } catch (e) { lastErr = e; }
                       }
+                      try {
+                        const localUrl = 'resources/conferences.yml?_=' + Date.now();
+                        const resp = await fetchWithTimeout(localUrl, { cache: 'no-store' }, YAML_FETCH_TIMEOUT_MS);
+                        if (resp && resp.ok) {
+                          const text = await resp.text();
+                          const doc = window.jsyaml.load(text);
+                          if (Array.isArray(doc)) return doc.map(normalizeItem);
+                        }
+                      } catch {}
                       throw lastErr || new Error('Failed to fetch any YAML source');
                     }
                   }
