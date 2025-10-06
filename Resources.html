@@ -858,32 +858,7 @@
                   }
 
                   function onReady() {
-                    const estimatesToggle = document.getElementById('conf-include-estimates');
-                    const includeEstimates = !estimatesToggle ? true : !!estimatesToggle.checked;
-
-                    // Immediately show local primary if available; otherwise static fallback
-                    try {
-                      (async function() {
-                        const localPrimary = await fetchLocalPrimary();
-                        if (localPrimary && localPrimary.length > 0) {
-                          renderRows(localPrimary);
-                          setLoading(false, 'Loaded local data');
-                        } else {
-                          const nowYear = new Date().getFullYear();
-                          const immediate = STATIC_FALLBACK.map(x => ({
-                            estimated: true,
-                            title: x.title,
-                            year: nowYear,
-                            deadlineDate: null,
-                            timezone: null,
-                            source: 'Fallback',
-                            link: x.link || null,
-                          }));
-                          renderRows(immediate);
-                          setLoading(true, 'Loading live…');
-                        }
-                      })();
-                    } catch {}
+                    const includeEstimates = true;
 
                     const cached = readCache(includeEstimates);
                     if (cached && Array.isArray(cached)) {
@@ -894,20 +869,6 @@
                       loadAndRender(includeEstimates);
                     }
 
-                    if (estimatesToggle) {
-                      estimatesToggle.addEventListener('change', () => {
-                        const withEst = estimatesToggle.checked;
-                        const cached2 = readCache(withEst);
-                        if (cached2 && Array.isArray(cached2)) {
-                          renderRows(cached2);
-                          setLoading(false, 'Loaded from cache');
-                          setTimeout(() => { loadAndRender(withEst); }, 0);
-                        } else {
-                          loadAndRender(withEst);
-                        }
-                      });
-                    }
-
                     const refreshBtn = document.getElementById('conf-refresh');
                     if (refreshBtn) {
                       refreshBtn.addEventListener('click', () => {
@@ -915,9 +876,8 @@
                           sessionStorage.removeItem(CACHE_KEY + ':with_est');
                           sessionStorage.removeItem(CACHE_KEY + ':no_est');
                         } catch {}
-                        const withEst = !estimatesToggle ? true : !!estimatesToggle.checked;
                         setLoading(true, 'Refreshing…');
-                        loadAndRender(withEst);
+                        loadAndRender(includeEstimates);
                       });
                     }
                   }
