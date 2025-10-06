@@ -1082,6 +1082,20 @@
 
                   function onReady() {
                     const includeEstimates = true;
+                    // Immediately render a static fallback so the table is never visually empty
+                    try {
+                      const nowYear = new Date().getFullYear();
+                      const immediate = STATIC_FALLBACK.map(x => ({
+                        estimated: true,
+                        title: x.title,
+                        year: nowYear,
+                        deadlineDate: null,
+                        timezone: null,
+                        link: x.link || null,
+                      }));
+                      renderRows(immediate);
+                      setLoading(true, 'Loading live…');
+                    } catch {}
 
                     const cached = readCache(includeEstimates);
                     if (cached && Array.isArray(cached)) {
