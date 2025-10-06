@@ -781,7 +781,7 @@
 
                     if (!results || results.length === 0) {
                       const tr = document.createElement('tr');
-                      tr.innerHTML = '<td colspan="4" class="small">No conferences to display. Try enabling estimates or refreshing.</td>';
+                      tr.innerHTML = '<td colspan="3" class="small">No conferences to display.</td>';
                       tbody.appendChild(tr);
                       return;
                     }
@@ -1046,13 +1046,18 @@
                       setLoading(true, 'Loading…');
                       const data = await fetchYaml();
                       const results = await buildResultsFromYaml(data, includeEstimates);
-                      if (results.length === 0 && !includeEstimates) {
-                        // Auto-fallback to estimates if strict mode yields nothing
-                        const toggle = document.getElementById('conf-include-estimates');
-                        if (toggle) toggle.checked = true;
-                        const resultsWithEst = await buildResultsFromYaml(data, true);
-                        renderRows(resultsWithEst);
-                        writeCache(resultsWithEst, true);
+                      // Always render something: if empty, render static fallback and do not cache
+                      if (!results || results.length === 0) {
+                        const nowYear = new Date().getFullYear();
+                        const fallback = STATIC_FALLBACK.map(x => ({
+                          estimated: true,
+                          title: x.title,
+                          year: nowYear,
+                          deadlineDate: null,
+                          timezone: null,
+                          link: x.link || null,
+                        }));
+                        renderRows(fallback);
                       } else {
                         renderRows(results);
                         writeCache(results, includeEstimates);
@@ -1061,7 +1066,6 @@
                       setLoading(false, `Last updated: ${now.toLocaleString()}`);
                     } catch (err) {
                       console.error(err);
-                      // Fallback: render static list
                       const nowYear = new Date().getFullYear();
                       const fallback = STATIC_FALLBACK.map(x => ({
                         estimated: true,
@@ -1069,7 +1073,6 @@
                         year: nowYear,
                         deadlineDate: null,
                         timezone: null,
-                        source: 'Fallback',
                         link: x.link || null,
                       }));
                       renderRows(fallback);
