@@ -99,9 +99,6 @@
                       Beta: This deadlines table is under active development; dates may be incomplete.
                     </div>
                     <div class="controls"><span id="conf-last-updated" class="small"></span>
-                      <label class="small" style="margin-left:8px;">
-                        <input type="checkbox" id="conf-include-estimates" checked> Include estimates
-                      </label>
                       <button id="conf-refresh" class="btn btn-xs" style="margin-left:8px;">Refresh</button>
                     </div>
                     <div class="card">
@@ -112,12 +109,11 @@
                             <th>Conference</th>
                             <th>Deadline</th>
                             <th>Days Left</th>
-                            <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody id="conf-body">
                           <tr>
-                            <td colspan="4" class="small">Loading…</td>
+                            <td colspan="3" class="small">Loading…</td>
                           </tr>
                         </tbody>
                       </table>
@@ -379,8 +375,15 @@
                     const nextOfficial = officialForYear(nextYear);
                     if (nextOfficial) return nextOfficial;
 
-                    const est = estimateForYear(groupEntries, currentYear) || estimateForYear(groupEntries, nextYear) || estimateForYear(groupEntries, prevYear);
-                    return est;
+                    // As a robust fallback: if no upcoming official deadline exists,
+                    // estimate using the most recent prior year's pattern (year-1) first
+                    // to avoid far-future estimates with big shifts.
+                    const estPrev = estimateForYear(groupEntries, prevYear);
+                    if (estPrev) return estPrev;
+                    const estCurrent = estimateForYear(groupEntries, currentYear);
+                    if (estCurrent) return estCurrent;
+                    const estNext = estimateForYear(groupEntries, nextYear);
+                    return estNext;
                   }
 
                   function normalizeItem(raw) {
@@ -606,14 +609,6 @@
                       const days = r.deadlineDate ? daysUntil(r.deadlineDate) : null;
                       const passed = r.deadlineDate ? (r.deadlineDate.getTime() <= Date.now()) : false;
                       const deadlineDisp = r.deadlineDate ? formatDateTimeInTimezone(r.deadlineDate, r.timezone) : 'Unknown';
-                      let calendarLink = '';
-                      if (r.deadlineDate) {
-                        const startDate = r.deadlineDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-                        const endDate = new Date(r.deadlineDate.getTime() + 2 * 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-                        const title = encodeURIComponent(r.title + ' ' + r.year + ' - Submission Deadline');
-                        const details = encodeURIComponent('Conference submission deadline for ' + r.title + ' ' + r.year);
-                        calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}`;
-                      }
 
                       tr.innerHTML = `
                         <td>
@@ -626,9 +621,6 @@
                         </td>
                         <td>
                           ${days === null ? '<span class="chip danger">Unknown</span>' : passed ? '<span class="chip danger">Passed</span>' : `<span class=\"chip info\">${days} day${days === 1 ? '' : 's'} left</span>`}
-                        </td>
-                        <td>
-                          ${calendarLink ? `<a href="${calendarLink}" target="_blank" rel="noreferrer noopener" class="small">📅 Add to Calendar</a>` : ''}
                         </td>
                       `;
 
