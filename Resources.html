@@ -129,6 +129,7 @@
                   const YAML_FETCH_TIMEOUT_MS = 4000; // 4s per source (fast-fail)
                   const SCRAPE_TIMEOUT_MS = 1500; // 1.5s per official site scrape
                   const ENABLE_SCRAPES = false; // disable slow scrapes on initial render
+                  const ENABLE_REMOTE = false; // hard-disable remote fetch if stability is an issue
                   const LOCAL_OVERRIDES_URL = 'resources/conference-overrides.json';
                   const LOCAL_PRIMARY_URL = 'resources/conf-data.json';
                   // Promise.any polyfill for older browsers
@@ -744,15 +745,12 @@
                       return doc.map(normalizeItem);
                     }
                     try {
+                      if (!ENABLE_REMOTE) throw new Error('Remote disabled');
                       // Race the sources; take the first successful one
                       const results = await Promise.any(YAML_URLS.map(u => tryUrl(u)));
                       return results;
                     } catch (errAny) {
-                      // Fallback: try sequentially, then local bundled copy
-                      let lastErr = errAny;
-                      for (const url of YAML_URLS) {
-                        try { return await tryUrl(url); } catch (e) { lastErr = e; }
-                      }
+                      // Fallback: try local bundled copy only
                       try {
                         const localUrl = 'resources/conferences.yml?_=' + Date.now();
                         const resp = await fetchWithTimeout(localUrl, { cache: 'no-store' }, YAML_FETCH_TIMEOUT_MS);
@@ -762,7 +760,7 @@
                           if (Array.isArray(doc)) return doc.map(normalizeItem);
                         }
                       } catch {}
-                      throw lastErr || new Error('Failed to fetch any YAML source');
+                      throw errAny || new Error('Failed to fetch any YAML source');
                     }
                   }
 
@@ -1092,11 +1090,16 @@
                       setLoading(true, 'Loading live…');
                     } catch {}
 
-                    const cached = readCache(includeEstimates);
-                    if (cached && Array.isArray(cached)) {
-                      renderRows(cached);
-                      setLoading(false, 'Loaded from cache');
-                      setTimeout(() => { loadAndRender(includeEstimates); }, 0);
+                    // Skip cache when remote is disabled; render from local immediately
+                    if (ENABLE_REMOTE) {
+                      const cached = readCache(includeEstimates);
+                      if (cached && Array.isArray(cached)) {
+                        renderRows(cached);
+                        setLoading(false, 'Loaded from cache');
+                        setTimeout(() => { loadAndRender(includeEstimates); }, 0);
+                      } else {
+                        loadAndRender(includeEstimates);
+                      }
                     } else {
                       loadAndRender(includeEstimates);
                     }
