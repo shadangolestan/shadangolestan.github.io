@@ -96,7 +96,7 @@
                   </style>
                   <div class="conf-tracker">
                     <div class="alert alert-info" style="margin-bottom:8px; padding:6px 10px;">
-                      Beta: This deadlines table is under active development; dates may be incomplete.
+                      Note: Dates may be incomplete or inaccurate. Please verify on official conference websites.
                     </div>
                     <div class="controls"><span id="conf-last-updated" class="small"></span>
                       <button id="conf-refresh" class="btn btn-xs" style="margin-left:8px;">Refresh</button>
@@ -810,7 +810,6 @@
                         <td>
                           <div style="font-weight:600">${r.title}</div>
                           ${r.link ? `<div class="small"><a href="${r.link}" target="_blank" rel="noreferrer noopener">Conference Website</a></div>` : ''}
-                          ${r.source ? `<div class="small">${r.source}</div>` : ''}
                         </td>
                         <td>
                           <div>${deadlineDisp}</div>
