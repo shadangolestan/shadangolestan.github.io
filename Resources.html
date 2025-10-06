@@ -550,6 +550,174 @@
                     return null;
                   }
 
+                  // Generic helpers to parse common "Month DD, YYYY" or "YYYY-MM-DD" patterns near labels
+                  function parseMonthName(monStr) {
+                    const d = new Date(Date.parse(monStr + ' 1, 2000'));
+                    const m = d.getMonth() + 1;
+                    return isNaN(m) ? null : m;
+                  }
+
+                  function parseGenericDateFromHtml(htmlText, labelRegexes) {
+                    if (!htmlText) return null;
+                    const html = String(htmlText);
+                    // Search lines near labels
+                    for (const labelRe of labelRegexes) {
+                      const re = new RegExp(
+                        labelRe + `[\"\'\):\s\-–—]*` +
+                        `((?:[A-Za-z]{3,9}\s+\d{1,2},\s*\d{4})|(?:\d{4}-\d{2}-\d{2}))`,
+                        'i'
+                      );
+                      const m = html.match(re);
+                      if (m) {
+                        const raw = m[1].trim();
+                        // Format detected into YYYY-MM-DD 23:59:59 AoE by default
+                        let y, mo, da;
+                        const mdy = raw.match(/^([A-Za-z]{3,9})\s+(\d{1,2}),\s*(\d{4})$/);
+                        if (mdy) {
+                          const mon = parseMonthName(mdy[1]);
+                          if (!mon) continue;
+                          y = parseInt(mdy[3], 10);
+                          mo = String(mon).padStart(2, '0');
+                          da = String(parseInt(mdy[2], 10)).padStart(2, '0');
+                          return `${y}-${mo}-${da} 23:59:59 AoE`;
+                        }
+                        const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                        if (iso) {
+                          y = parseInt(iso[1], 10);
+                          mo = iso[2];
+                          da = iso[3];
+                          return `${y}-${mo}-${da} 23:59:59 AoE`;
+                        }
+                      }
+                    }
+                    return null;
+                  }
+
+                  async function fetchICLROfficialChoice() {
+                    const currentYear = new Date().getFullYear();
+                    const yearsToTry = [currentYear, currentYear + 1];
+                    for (const y of yearsToTry) {
+                      const url = `https://iclr.cc/Conferences/${y}/Dates`;
+                      const html = await fetchTextWithFallback(url);
+                      if (!html) continue;
+                      if (!new RegExp(String(y)).test(html)) {
+                        // Many ICLR pages omit the year; still attempt parse
+                      }
+                      const parsed = parseGenericDateFromHtml(html, [
+                        'Paper\\s*Submission', 'Submission\\s*Deadline', 'Full\\s*Paper'
+                      ]);
+                      if (!parsed) continue;
+                      const d = parseDeadline(parsed, 'AoE');
+                      if (!d) continue;
+                      if (d.getTime() <= Date.now()) continue;
+                      return {
+                        estimated: false,
+                        title: 'ICLR',
+                        year: y,
+                        deadlineDate: d,
+                        timezone: 'AoE',
+                        source: 'Official',
+                        link: url,
+                      };
+                    }
+                    return null;
+                  }
+
+                  async function fetchAAAIOfficialChoice() {
+                    const currentYear = new Date().getFullYear();
+                    // AAAI year label is conference year; submission usually in prior year
+                    const yearsToTry = [currentYear, currentYear + 1];
+                    for (const y of yearsToTry) {
+                      const yy = String(y).slice(-2);
+                      const candidates = [
+                        `https://aaai.org/conference/aaai-${yy}-call-for-papers/`,
+                        `https://aaai.org/conference/aaai-${yy}/aaai-${yy}-call-for-papers/`,
+                        `https://aaai.org/conference/aaai-${yy}/`,
+                      ];
+                      for (const url of candidates) {
+                        const html = await fetchTextWithFallback(url);
+                        if (!html) continue;
+                        const parsed = parseGenericDateFromHtml(html, [
+                          'Paper\\s*Submission', 'Main\\s*Track', 'Submission\\s*Deadline', 'Full\\s*Paper'
+                        ]);
+                        if (!parsed) continue;
+                        const d = parseDeadline(parsed, 'AoE');
+                        if (!d) continue;
+                        if (d.getTime() <= Date.now()) continue;
+                        return {
+                          estimated: false,
+                          title: 'AAAI',
+                          year: y,
+                          deadlineDate: d,
+                          timezone: 'AoE',
+                          source: 'Official',
+                          link: url,
+                        };
+                      }
+                    }
+                    return null;
+                  }
+
+                  async function fetchL4DCOfficialChoice() {
+                    const currentYear = new Date().getFullYear();
+                    const yearsToTry = [currentYear, currentYear + 1];
+                    for (const y of yearsToTry) {
+                      const url = `https://sites.google.com/usc.edu/l4dc${y}/home`;
+                      const html = await fetchTextWithFallback(url);
+                      if (!html) continue;
+                      const parsed = parseGenericDateFromHtml(html, [
+                        'Paper\\s*Submission', 'Submission\\s*Deadline', 'Full\\s*Paper'
+                      ]);
+                      if (!parsed) continue;
+                      const d = parseDeadline(parsed, 'AoE');
+                      if (!d) continue;
+                      if (d.getTime() <= Date.now()) continue;
+                      return {
+                        estimated: false,
+                        title: 'L4DC',
+                        year: y,
+                        deadlineDate: d,
+                        timezone: 'AoE',
+                        source: 'Official',
+                        link: url,
+                      };
+                    }
+                    return null;
+                  }
+
+                  async function fetchICRAOfficialChoice() {
+                    const currentYear = new Date().getFullYear();
+                    const yearsToTry = [currentYear, currentYear + 1];
+                    const candidatesForYear = (y) => [
+                      `https://www.icra${y}.org/`,
+                      `https://icra${y}.ieee-ras.org/`,
+                      `https://20${String(y).slice(-2)}.ieee-icra.org/`,
+                    ];
+                    for (const y of yearsToTry) {
+                      for (const url of candidatesForYear(y)) {
+                        const html = await fetchTextWithFallback(url);
+                        if (!html) continue;
+                        const parsed = parseGenericDateFromHtml(html, [
+                          'Paper\\s*Submission', 'Submission\\s*Deadline', 'Full\\s*Paper'
+                        ]);
+                        if (!parsed) continue;
+                        const d = parseDeadline(parsed, 'AoE');
+                        if (!d) continue;
+                        if (d.getTime() <= Date.now()) continue;
+                        return {
+                          estimated: false,
+                          title: 'ICRA',
+                          year: y,
+                          deadlineDate: d,
+                          timezone: 'AoE',
+                          source: 'Official',
+                          link: url,
+                        };
+                      }
+                    }
+                    return null;
+                  }
+
                   function normalizeForMatch(text) {
                     return String(text || '')
                       .toLowerCase()
@@ -770,6 +938,30 @@
                         try {
                           const aamasOfficial = await fetchAAMASOfficialChoice();
                           if (aamasOfficial) { choice = aamasOfficial; }
+                        } catch {}
+                      }
+                      if (needsOfficialBoost && target.key === 'ICLR') {
+                        try {
+                          const iclrOfficial = await fetchICLROfficialChoice();
+                          if (iclrOfficial) { choice = iclrOfficial; }
+                        } catch {}
+                      }
+                      if (needsOfficialBoost && target.key === 'AAAI') {
+                        try {
+                          const aaaiOfficial = await fetchAAAIOfficialChoice();
+                          if (aaaiOfficial) { choice = aaaiOfficial; }
+                        } catch {}
+                      }
+                      if (needsOfficialBoost && target.key === 'L4DC') {
+                        try {
+                          const l4dcOfficial = await fetchL4DCOfficialChoice();
+                          if (l4dcOfficial) { choice = l4dcOfficial; }
+                        } catch {}
+                      }
+                      if (needsOfficialBoost && target.key === 'ICRA') {
+                        try {
+                          const icraOfficial = await fetchICRAOfficialChoice();
+                          if (icraOfficial) { choice = icraOfficial; }
                         } catch {}
                       }
 
